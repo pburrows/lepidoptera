@@ -1,0 +1,13 @@
+[package]
+name = "db"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+
+[dependencies]
+rusqlite =  { workspace = true }
+rusqlite_migration =  { workspace = true }
+anyhow = { workspace = true }
+tauri = { workspace = true }
+shared = { path = "../shared" }

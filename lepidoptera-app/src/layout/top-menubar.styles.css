@@ -1,0 +1,124 @@
+/* reset */
+button {
+    all: unset;
+}
+
+.MenubarRoot {
+    display: flex;
+    background-color: var(--color-panel-solid);
+    padding: 3px;
+    /*border-radius: var(--radius-3);*/
+    /*box-shadow: var(--shadow-2);*/
+    border: none;
+}
+
+.MenubarTrigger {
+    padding: 8px 12px;
+    outline: none;
+    user-select: none;
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-1);
+    border-radius: var(--radius-2);
+    border: none;
+    color: var(--gray-12);
+    font-size: var(--font-size-1);
+    font-family: var(--default-font-family), sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+}
+
+.MenubarTrigger[data-highlighted],
+.MenubarTrigger[data-state="open"] {
+    background-color: var(--gray-4);
+    color: var(--gray-12);
+}
+
+.MenubarContent,
+.MenubarSubContent {
+    min-width: 220px;
+    background-color: var(--color-panel-solid);
+    border-radius: var(--radius-3);
+    padding: 5px;
+    box-shadow: var(--shadow-4);
+    animation-duration: 400ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+}
+
+.MenubarItem,
+.MenubarSubTrigger,
+.MenubarCheckboxItem,
+.MenubarRadioItem {
+    all: unset;
+    font-size: var(--font-size-1);
+    line-height: var(--line-height-1);
+    color: var(--gray-12);
+    border-radius: var(--radius-2);
+    font-family: var(--default-font-family), serif;
+    display: flex;
+    align-items: center;
+    height: 25px;
+    padding: 0 10px;
+    position: relative;
+    user-select: none;
+}
+
+.MenubarItem.inset,
+.MenubarSubTrigger.inset,
+.MenubarCheckboxItem.inset,
+.MenubarRadioItem.inset {
+    padding-left: 20px;
+}
+
+.MenubarItem[data-state="open"],
+.MenubarSubTrigger[data-state="open"] {
+    background-color: var(--gray-4);
+    color: var(--gray-12);
+}
+
+.MenubarItem[data-highlighted],
+.MenubarSubTrigger[data-highlighted],
+.MenubarCheckboxItem[data-highlighted],
+.MenubarRadioItem[data-highlighted] {
+    background-color: var(--accent-9);
+    color: var(--accent-contrast);
+}
+
+.MenubarItem[data-disabled],
+.MenubarSubTrigger[data-disabled],
+.MenubarCheckboxItem[data-disabled],
+.MenubarRadioItem[data-disabled] {
+    color: var(--gray-9);
+    pointer-events: none;
+}
+
+.MenubarItemIndicator {
+    position: absolute;
+    left: 0;
+    width: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.MenubarSeparator {
+    height: 1px;
+    background-color: var(--gray-6);
+    margin: 5px;
+}
+
+.RightSlot {
+    margin-left: auto;
+    padding-left: 20px;
+    color: var(--gray-11);
+}
+
+[data-highlighted] > .RightSlot {
+    color: var(--accent-contrast);
+}
+
+[data-disabled] > .RightSlot {
+    color: var(--gray-9);
+}

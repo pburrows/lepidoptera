@@ -1,0 +1,52 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/Inter-Italic-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+html, body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Ensure Radix UI Themes components use Inter */
+[data-radix-theme] {
+  font-family: 'Inter', sans-serif;
+}
+
+[data-radix-theme] * {
+  font-family: 'Inter', sans-serif;
+}
+
+.app-bar {
+
+  background-color: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+  border: none;
+}
+
+.radix-themes {
+	--cursor-button: pointer;
+	--cursor-checkbox: pointer;
+	--cursor-disabled: default;
+	--cursor-link: pointer;
+	--cursor-menu-item: pointer;
+	--cursor-radio: pointer;
+	--cursor-slider-thumb: grab;
+	--cursor-slider-thumb-active: grabbing;
+	--cursor-switch: pointer;
+}

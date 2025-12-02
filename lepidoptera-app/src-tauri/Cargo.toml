@@ -1,0 +1,21 @@
+[workspace]
+members = [
+    "lepidoptera-app",
+    "db",
+    "shared",
+#    "tickets"
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["PB"]
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1.0"
+rusqlite = { version = "0.37.0", features = ["bundled"] }
+rusqlite_migration = "2.3.0"
+tauri = { version = "2", features = [] }
