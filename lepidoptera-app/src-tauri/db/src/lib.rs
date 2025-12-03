@@ -1,5 +1,5 @@
 pub mod repository_base;
-pub mod repository;
+mod migrations;
 
 use anyhow::Result;
 
@@ -9,8 +9,10 @@ pub struct Connection {
 
 impl Connection {
     pub fn new(path: &str) -> Result<Self> {
+        let mut conn = rusqlite::Connection::open(path)?;
+        migrations::run_migrations(&mut conn)?;
         Ok(Self {
-            inner: rusqlite::Connection::open(path)?
+            inner: conn
         })
     }
 
