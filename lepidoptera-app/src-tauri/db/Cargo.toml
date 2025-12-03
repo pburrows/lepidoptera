@@ -6,8 +6,8 @@ authors.workspace = true
 
 
 [dependencies]
-rusqlite =  { workspace = true }
-rusqlite_migration =  { workspace = true }
+rusqlite = { workspace = true }
+rusqlite_migration = "2.3.0"
 anyhow = { workspace = true }
 tauri = { workspace = true }
 shared = { path = "../shared" }
