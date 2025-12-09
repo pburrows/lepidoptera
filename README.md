@@ -9,3 +9,7 @@ This is a practice app I wrote for learning Rust. I always find it is easiest to
 You really shouldn't use this for anything serious.
 
 However, if you want to review my code and suggest improvements or things that could be done better, that would be great!
+
+## The Icon
+
+The butterfly icon ![<img src="./graphics/-butterfly_86835.png" width="48" />](./graphics/-butterfly_86835.png) is part of the Free Flat Icons collection by [RoundIcons](https://icon-icons.com/authors/274-roundicons), used according to the [CC-BY-40](https://creativecommons.org/licenses/by/4.0/) license.
