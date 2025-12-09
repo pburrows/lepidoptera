@@ -1,4 +1,4 @@
-# Lepidoptera
+# ![Butterfly Logo](./graphics/-butterfly_86835.svg) Lepidoptera
 
 A cleverly named bug tracking application written in Rust and Tauri
 
