@@ -5,8 +5,7 @@ members = [
     "shared",
     "tickets",
     "projects",
-    "users",
-#    "tickets_sqlite",
+    "people",
 ]
 resolver = "2"
 

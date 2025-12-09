@@ -10,8 +10,8 @@ pub trait Entity: Send + Sync + Clone {
     }
     fn columns() -> &'static [&'static str];
     fn from_row(row: &Row) -> rusqlite::Result<Self>;
-    fn id(&self) -> Option<i64>;
-    fn set_id(&mut self, id: i64);
+    fn id(&self) -> Option<String>;
+    fn set_id(&mut self, id: String);
     fn insert_values(&self) -> Vec<&dyn ToSql>;
     fn update_values(&self) -> Vec<&dyn ToSql>;
 }
@@ -46,7 +46,7 @@ impl<E: Entity> GenericRepository<E> {
             .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))
     }
 
-    pub fn find_by_id(&self, id: i64) -> Result<Option<E>> {
+    pub fn find_by_id(&self, id: &str) -> Result<Option<E>> {
         let conn = self
             .connection
             .lock()
@@ -64,7 +64,7 @@ impl<E: Entity> GenericRepository<E> {
         Ok(results.pop())
     }
 
-    pub fn create(&self, mut entity: E) -> Result<(E,i64)> {
+    pub fn create(&self, mut entity: E) -> Result<(E)> {
         let conn = self
             .connection
             .lock()
@@ -84,14 +84,14 @@ impl<E: Entity> GenericRepository<E> {
         conn.execute(&sql, &values.iter().map(|v| *v).collect::<Vec<_>>())
             .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
 
-        let id = conn
-            .query("SELECT last_insert_rowid()", &[], |row| row.get(0))?
-            .pop()
-            .ok_or_else(|| anyhow::anyhow!("Failed to get last inserted id"))?;
+        // let id = conn
+        //     .query("SELECT last_insert_rowid()", &[], |row| row.get(0))?
+        //     .pop()
+        //     .ok_or_else(|| anyhow::anyhow!("Failed to get last inserted id"))?;
+        //
+        // entity.set_id(id);
 
-        entity.set_id(id);
-
-        Ok((entity,id))
+        Ok((entity))
     }
 
     pub fn update(&self, entity: &E) -> Result<usize> {
@@ -125,7 +125,7 @@ impl<E: Entity> GenericRepository<E> {
         conn.execute(&sql, &values.iter().map(|v| *v).collect::<Vec<_>>())
             .map_err(|e| anyhow::anyhow!("Failed to update entity: {}", e))
     }
-    pub fn delete(&self, id: i64) -> Result<usize> {
+    pub fn delete(&self, id: &str) -> Result<usize> {
         let conn = self
             .connection
             .lock()

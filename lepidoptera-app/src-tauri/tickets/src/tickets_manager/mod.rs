@@ -4,6 +4,7 @@ use crate::entities::Ticket;
 use crate::repository::TicketsRepository;
 use crate::tickets_port::TicketsManager;
 use crate::tickets_sqlite_repository::SqliteTicketsRepository;
+use anyhow::Result;
 
 mod create_ticket;
 mod get_ticket;
@@ -21,11 +22,11 @@ impl SqliteTicketManager {
 
 impl TicketsManager for SqliteTicketManager {
 
-    fn get_ticket(&self, id: i64) -> Option<Ticket> {
+    fn get_ticket(&self, id: &str) -> Result<Option<Ticket>> {
         get_ticket::get_ticket(&self.repository, id)
     }
 
-    fn create_ticket(&self, ticket: Ticket) -> (Ticket, i64) {
+    fn create_ticket(&self, ticket: Ticket) -> (Ticket) {
         create_ticket::create_ticket(&self.repository, ticket)
     }
 }

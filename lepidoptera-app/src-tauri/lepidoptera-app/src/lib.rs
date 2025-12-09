@@ -14,6 +14,7 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             let ctx = Arc::new(AppContextBuilder::new().build());
             app.manage(Mutex::new(Arc::clone(&ctx)));

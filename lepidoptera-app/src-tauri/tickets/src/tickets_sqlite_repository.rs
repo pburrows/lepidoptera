@@ -17,11 +17,11 @@ impl SqliteTicketsRepository {
 }
 
 impl TicketsRepository for SqliteTicketsRepository {
-    fn find_by_id(&self, id: i64) -> anyhow::Result<Option<Ticket>> {
+    fn find_by_id(&self, id: &str) -> anyhow::Result<Option<Ticket>> {
         self.inner.find_by_id(id)
     }
 
-    fn create(&self, ticket: Ticket) -> anyhow::Result<(Ticket,i64)> {
+    fn create(&self, ticket: Ticket) -> anyhow::Result<(Ticket)> {
        self.inner.create(ticket) 
     }
 }

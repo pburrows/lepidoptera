@@ -1,12 +1,19 @@
+use db::repository_base::Entity;
 use rusqlite::{Row, ToSql};
 use serde::{Deserialize, Serialize};
-use db::repository_base::Entity;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Ticket {
-    pub id: Option<i64>,
+    pub id: Option<String>,
     pub title: String,
     pub description: Option<String>,
+    pub status: String,
+    pub created_at: String,
+    pub updated_at: Option<String>,
+    pub priority: i32,
+    pub created_by: String,
+    pub assigned_to: Option<String>,
+    pub project_id: String,
 }
 
 impl Entity for Ticket {
@@ -15,7 +22,17 @@ impl Entity for Ticket {
     }
 
     fn columns() -> &'static [&'static str] {
-        &["title", "description"]
+        &[
+            "title",
+            "description",
+            "status",
+            "created_at",
+            "updated_at",
+            "priority",
+            "created_by",
+            "assigned_to",
+            "project_id",
+        ]
     }
 
     fn from_row(row: &Row) -> rusqlite::Result<Self> {
@@ -23,14 +40,21 @@ impl Entity for Ticket {
             id: row.get(0)?,
             title: row.get(1)?,
             description: row.get(2)?,
+            status: row.get(3)?,
+            created_at: row.get(4)?,
+            updated_at: row.get(5)?,
+            priority: row.get(6)?,
+            created_by: row.get(7)?,
+            assigned_to: row.get(8)?,
+            project_id: row.get(9)?,
         })
     }
 
-    fn id(&self) -> Option<i64> {
-        self.id
+    fn id(&self) -> Option<String> {
+        self.id.clone()
     }
 
-    fn set_id(&mut self, id: i64) {
+    fn set_id(&mut self, id: String) {
         self.id = Some(id);
     }
 

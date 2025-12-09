@@ -3,9 +3,12 @@ use db::Connection;
 use std::sync::{Arc, Mutex};
 use tickets::tickets_manager::SqliteTicketManager;
 use tickets::tickets_port::TicketsManager;
+use projects::project_ports::ProjectsManager;
+use projects::projects_manager::projects_manager::SqliteProjectsManager;
 
 pub struct AppContext {
     pub tickets: Arc<dyn TicketsManager>,
+    pub projects: Arc<dyn ProjectsManager>,
 }
 
 pub struct AppContextBuilder {
@@ -25,9 +28,11 @@ impl AppContextBuilder {
         let shared_connection = Arc::new(Mutex::new(conn));
 
         let tickets_manager = Arc::new(SqliteTicketManager::new(shared_connection.clone()));
+        let projects_manager = Arc::new(SqliteProjectsManager::new(shared_connection.clone()));
 
         Ok(AppContext {
             tickets: tickets_manager,
+            projects: projects_manager,
         })
     }
 }

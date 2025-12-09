@@ -1865,12 +1865,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "db",
+ "projects",
  "serde",
  "serde_json",
  "shared",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
+ "tauri-plugin-window-state",
  "tickets",
 ]
 
@@ -2513,6 +2515,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
+name = "people"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "rusqlite",
+ "serde",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2822,6 +2834,12 @@ dependencies = [
 [[package]]
 name = "projects"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "rusqlite",
+ "serde",
+]
 
 [[package]]
 name = "quick-xml"
@@ -3803,6 +3821,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-window-state"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73736611e14142408d15353e21e3cca2f12a3cfb523ad0ce85999b6d2ef1a704"
+dependencies = [
+ "bitflags 2.10.0",
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "tauri-runtime"
 version = "2.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4344,10 +4377,6 @@ dependencies = [
  "unic-ucd-ident",
  "url",
 ]
-
-[[package]]
-name = "users"
-version = "0.1.0"
 
 [[package]]
 name = "utf-8"
