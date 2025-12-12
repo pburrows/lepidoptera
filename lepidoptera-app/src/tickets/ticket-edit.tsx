@@ -11,6 +11,7 @@ import {
     TextField,
 } from "@radix-ui/themes";
 import { FaXmark } from "react-icons/fa6";
+import {RichTextEditor} from "../components/editor";
 
 export interface TicketData {
     title: string;
@@ -101,17 +102,24 @@ export default function TicketEdit({ ticket, onSave, onCancel }: TicketEditProps
                                 <Text size="2" weight="medium" mb="2" as="label" htmlFor="description">
                                     Description
                                 </Text>
-                                <TextArea
-                                    id="description"
-                                    placeholder="Enter ticket description..."
+                                <RichTextEditor
+                                    id={"description"}
                                     value={formData.description}
-                                    onChange={(e) => handleFieldChange("description", e.target.value)}
-                                    rows={10}
-                                    size="3"
+                                    onChange={(html) => handleFieldChange("description", html)}
+                                    placeholder="Enter ticket description..."
+                                    minHeight="150px"
+                                    showToolbar={true}
+                                    showCount={false}
                                 />
-                                <Text size="1" color="gray" mt="1" as="p">
-                                    Markdown is supported
-                                </Text>
+                                {/*<TextArea*/}
+                                {/*    id="description"*/}
+                                {/*    placeholder="Enter ticket description..."*/}
+                                {/*    value={formData.description}*/}
+                                {/*    onChange={(e) => handleFieldChange("description", e.target.value)}*/}
+                                {/*    rows={10}*/}
+                                {/*    size="3"*/}
+                                {/*/>*/}
+
                             </Box>
 
                             {/* Labels */}

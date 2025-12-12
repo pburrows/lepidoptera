@@ -15,12 +15,6 @@ export interface RichTextEditorProps {
   onChange?: (content: string) => void;
   
   /**
-   * Optional callback for markdown content changes
-   * @param markdown - Markdown content string
-   */
-  onMarkdownChange?: (markdown: string) => void;
-  
-  /**
    * Placeholder text shown when editor is empty
    */
   placeholder?: string;
@@ -110,9 +104,9 @@ export interface EditorContent {
   html: string;
   
   /**
-   * Markdown content
+   * Markdown content (for future export feature)
    */
-  markdown: string;
+  markdown?: string;
   
   /**
    * Plain text content

@@ -5,8 +5,7 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import { Markdown } from '@tiptap/markdown';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { 
   FaBold, 
   FaItalic, 
@@ -27,25 +26,26 @@ import {
 } from 'react-icons/fa';
 import { Box, Flex, Button, Separator } from '@radix-ui/themes';
 import type { RichTextEditorProps } from './rich-text-editor.types';
-import './rich-text-editor.styles.css';
+import LinkDialog from './dialogs/link-dialog';
 
 /**
  * RichTextEditor - A full-featured WYSIWYG editor built with Tiptap
  * 
  * Features:
- * - Markdown support (input/output)
- * - Rich text formatting
+ * - Rich text formatting (HTML-based)
  * - Links and images
  * - Task lists
  * - Code blocks
  * - Blockquotes
  * - Inline comments (when enabled)
  * - Radix UI theme integration
+ * 
+ * Note: Content is stored and edited as HTML. Markdown export will be
+ * available as a future feature.
  */
 export default function RichTextEditor({
   value = '',
   onChange,
-  onMarkdownChange,
   placeholder = 'Start typing...',
   editable = true,
   minHeight = '200px',
@@ -57,6 +57,9 @@ export default function RichTextEditor({
   showCount = false,
   extensions = [],
 }: RichTextEditorProps) {
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [linkDialogProps, setLinkDialogProps] = useState({ initialUrl: '', initialText: '' });
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -94,21 +97,13 @@ export default function RichTextEditor({
           class: 'rich-text-editor-task-item',
         },
       }),
-      Markdown.configure({
-        // html: true,
-        // transformPastedText: true,
-        // transformCopiedText: true,
-      }),
       ...extensions,
     ],
     content: value,
     editable,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      const markdown = editor.getMarkdown() || ''; //.storage.markdown?.manager..getMarkdown() || '';
-      
       onChange?.(html);
-      onMarkdownChange?.(markdown);
     },
     editorProps: {
       attributes: {
@@ -147,20 +142,58 @@ export default function RichTextEditor({
   const toggleCodeBlock = useCallback(() => editor?.chain().focus().toggleCodeBlock().run(), [editor]);
   
   const setLink = useCallback(() => {
-    const previousUrl = editor?.getAttributes('link').href;
-    const url = window.prompt('URL', previousUrl);
-
-    if (url === null) {
-      return;
-    }
-
-    if (url === '') {
-      editor?.chain().focus().extendMarkRange('link').unsetLink().run();
-      return;
-    }
-
-    editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    if (!editor) return;
+    
+    // Capture current selection and existing link when opening dialog
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    const existingLinkUrl = editor.getAttributes('link').href || '';
+    
+    setLinkDialogProps({
+      initialUrl: existingLinkUrl,
+      initialText: selectedText,
+    });
+    setIsLinkDialogOpen(true);
   }, [editor]);
+
+  const handleLinkConfirm = useCallback((url: string, text?: string) => {
+    if (!editor) return;
+
+    if (!url || url.trim() === '') {
+      // Remove link if URL is empty
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
+    }
+
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+
+    if (text && text.trim() !== '') {
+      // Replace selected text with new text and add link
+      editor
+        .chain()
+        .focus()
+        .deleteRange({ from, to })
+        .insertContent(`<a href="${url}">${text}</a>`)
+        .run();
+    } else if (selectedText) {
+      // Use selected text with link
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange('link')
+        .setLink({ href: url })
+        .run();
+    } else {
+      // No selection, insert link with URL as text
+      editor
+        .chain()
+        .focus()
+        .insertContent(`<a href="${url}">${url}</a>`)
+        .run();
+    }
+  }, [editor]);
+
 
   const addImage = useCallback(() => {
     const url = window.prompt('Image URL');
@@ -410,6 +443,13 @@ export default function RichTextEditor({
           </Flex>
         </Box>
       )}
+
+      <LinkDialog
+        open={isLinkDialogOpen}
+        onOpenChange={setIsLinkDialogOpen}
+        onConfirm={handleLinkConfirm}
+        {...linkDialogProps}
+      />
     </Box>
   );
 }
