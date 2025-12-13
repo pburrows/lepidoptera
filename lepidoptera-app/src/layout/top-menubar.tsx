@@ -6,11 +6,11 @@ import {
     MenubarSeparator, MenubarSub, MenubarSubContent, MenubarSubTrigger,
     MenubarTrigger
 } from "@radix-ui/react-menubar";
-import { useState } from "react";
+import {useState} from "react";
 import "./top-menubar.styles.css";
-import { FaCheck, FaChevronRight } from "react-icons/fa6";
-import { RxDotFilled } from "react-icons/rx";
-import { Theme } from "@radix-ui/themes";
+import {FaCheck, FaChevronRight} from "react-icons/fa6";
+import {RxDotFilled} from "react-icons/rx";
+import {Theme} from "@radix-ui/themes";
 
 
 const RADIO_ITEMS = ["Andy", "Benoît", "Luis"];
@@ -35,20 +35,24 @@ export default function TopMenubar() {
                             alignOffset={-3}
                         >
                             <MenubarItem className="MenubarItem">
-                                New Tab <div className="RightSlot">⌘ T</div>
+                                New Document <div className="RightSlot">⌘ N</div>
                             </MenubarItem>
                             <MenubarItem className="MenubarItem">
-                                New Window <div className="RightSlot">⌘ N</div>
+                                New Ticket <div className="RightSlot">⌘ T</div>
                             </MenubarItem>
-                            <MenubarItem className="MenubarItem" disabled>
-                                New Incognito Window
+                            <MenubarSeparator className="MenubarSeparator"/>
+                            <MenubarItem className="MenubarItem">
+                                Open Workspace <div className="RightSlot"></div>
                             </MenubarItem>
-                            <MenubarSeparator className="MenubarSeparator" />
+                            <MenubarItem className="MenubarItem">
+                                New Workspace <div className="RightSlot"></div>
+                            </MenubarItem>
+                            <MenubarSeparator className="MenubarSeparator"/>
                             <MenubarSub>
                                 <MenubarSubTrigger className="MenubarSubTrigger">
                                     Share
                                     <div className="RightSlot">
-                                        <FaChevronRight />
+                                        <FaChevronRight/>
                                     </div>
                                 </MenubarSubTrigger>
                                 <MenubarPortal>
@@ -66,9 +70,13 @@ export default function TopMenubar() {
                                     </Theme>
                                 </MenubarPortal>
                             </MenubarSub>
-                            <MenubarSeparator className="MenubarSeparator" />
+                            <MenubarSeparator className="MenubarSeparator"/>
                             <MenubarItem className="MenubarItem">
                                 Print… <div className="RightSlot">⌘ P</div>
+                            </MenubarItem>
+                            <MenubarSeparator className="MenubarSeparator"/>
+                            <MenubarItem className="MenubarItem">
+                                Quit <div className="RightSlot">⌘ P</div>
                             </MenubarItem>
                         </MenubarContent>
                     </Theme>
@@ -91,33 +99,35 @@ export default function TopMenubar() {
                             <MenubarItem className="MenubarItem">
                                 Redo <div className="RightSlot">⇧ ⌘ Z</div>
                             </MenubarItem>
-                            <MenubarSeparator className="MenubarSeparator" />
+                            <MenubarSeparator className="MenubarSeparator"/>
                             <MenubarSub>
                                 <MenubarSubTrigger className="MenubarSubTrigger">
                                     Find
                                     <div className="RightSlot">
-                                        <FaChevronRight />
+                                        <FaChevronRight/>
                                     </div>
                                 </MenubarSubTrigger>
 
                                 <MenubarPortal>
-                                    <MenubarSubContent
-                                        className="MenubarSubContent"
-                                        alignOffset={-5}
-                                    >
-                                        <MenubarItem className="MenubarItem">
-                                            Search the web…
-                                        </MenubarItem>
-                                        <MenubarSeparator className="MenubarSeparator" />
-                                        <MenubarItem className="MenubarItem">Find…</MenubarItem>
-                                        <MenubarItem className="MenubarItem">Find Next</MenubarItem>
-                                        <MenubarItem className="MenubarItem">
-                                            Find Previous
-                                        </MenubarItem>
-                                    </MenubarSubContent>
+                                    <Theme>
+                                        <MenubarSubContent
+                                            className="MenubarSubContent"
+                                            alignOffset={-5}
+                                        >
+                                            <MenubarItem className="MenubarItem">
+                                                Search the web…
+                                            </MenubarItem>
+                                            <MenubarSeparator className="MenubarSeparator"/>
+                                            <MenubarItem className="MenubarItem">Find…</MenubarItem>
+                                            <MenubarItem className="MenubarItem">Find Next</MenubarItem>
+                                            <MenubarItem className="MenubarItem">
+                                                Find Previous
+                                            </MenubarItem>
+                                        </MenubarSubContent>
+                                    </Theme>
                                 </MenubarPortal>
                             </MenubarSub>
-                            <MenubarSeparator className="MenubarSeparator" />
+                            <MenubarSeparator className="MenubarSeparator"/>
                             <MenubarItem className="MenubarItem">Cut</MenubarItem>
                             <MenubarItem className="MenubarItem">Copy</MenubarItem>
                             <MenubarItem className="MenubarItem">Paste</MenubarItem>
@@ -150,23 +160,23 @@ export default function TopMenubar() {
                                     }
                                 >
                                     <MenubarItemIndicator className="MenubarItemIndicator">
-                                        <FaCheck />
+                                        <FaCheck/>
                                     </MenubarItemIndicator>
                                     {item}
                                 </MenubarCheckboxItem>
                             ))}
-                            <MenubarSeparator className="MenubarSeparator" />
+                            <MenubarSeparator className="MenubarSeparator"/>
                             <MenubarItem className="MenubarItem inset">
                                 Reload <div className="RightSlot">⌘ R</div>
                             </MenubarItem>
                             <MenubarItem className="MenubarItem inset" disabled>
                                 Force Reload <div className="RightSlot">⇧ ⌘ R</div>
                             </MenubarItem>
-                            <MenubarSeparator className="MenubarSeparator" />
+                            <MenubarSeparator className="MenubarSeparator"/>
                             <MenubarItem className="MenubarItem inset">
                                 Toggle Fullscreen
                             </MenubarItem>
-                            <MenubarSeparator className="MenubarSeparator" />
+                            <MenubarSeparator className="MenubarSeparator"/>
                             <MenubarItem className="MenubarItem inset">
                                 Hide Sidebar
                             </MenubarItem>
@@ -197,14 +207,14 @@ export default function TopMenubar() {
                                         value={item}
                                     >
                                         <MenubarItemIndicator className="MenubarItemIndicator">
-                                            <RxDotFilled />
+                                            <RxDotFilled/>
                                         </MenubarItemIndicator>
                                         {item}
                                     </MenubarRadioItem>
                                 ))}
-                                <MenubarSeparator className="MenubarSeparator" />
+                                <MenubarSeparator className="MenubarSeparator"/>
                                 <MenubarItem className="MenubarItem inset">Edit…</MenubarItem>
-                                <MenubarSeparator className="MenubarSeparator" />
+                                <MenubarSeparator className="MenubarSeparator"/>
                                 <MenubarItem className="MenubarItem inset">
                                     Add Profile…
                                 </MenubarItem>
@@ -214,7 +224,7 @@ export default function TopMenubar() {
                 </MenubarPortal>
 
             </MenubarMenu>
-        </Menubar >
+        </Menubar>
 
     )
 }

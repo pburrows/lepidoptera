@@ -762,7 +762,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "documentation"
+name = "documents"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1875,6 +1875,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "db",
+ "documents",
  "projects",
  "serde",
  "serde_json",

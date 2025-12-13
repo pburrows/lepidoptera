@@ -1,5 +1,5 @@
 [package]
-name = "documentation"
+name = "documents"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

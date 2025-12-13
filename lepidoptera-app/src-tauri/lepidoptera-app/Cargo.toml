@@ -22,3 +22,4 @@ db = { path = "../db" }
 shared = { path = "../shared" }
 tickets = { path = "../tickets" }
 projects = {path = "../projects"}
+documents = {path = "../documents" }

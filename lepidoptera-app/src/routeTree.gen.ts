@@ -9,9 +9,39 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TicketRouteImport } from './routes/ticket'
+import { Route as ProjectsManageRouteImport } from './routes/projects-manage'
+import { Route as OverviewRouteImport } from './routes/overview'
+import { Route as DocumentRouteImport } from './routes/document'
+import { Route as BacklogRouteImport } from './routes/backlog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TicketRoute = TicketRouteImport.update({
+  id: '/ticket',
+  path: '/ticket',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsManageRoute = ProjectsManageRouteImport.update({
+  id: '/projects-manage',
+  path: '/projects-manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OverviewRoute = OverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentRoute = DocumentRouteImport.update({
+  id: '/document',
+  path: '/document',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BacklogRoute = BacklogRouteImport.update({
+  id: '/backlog',
+  path: '/backlog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -26,31 +56,108 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/backlog': typeof BacklogRoute
+  '/document': typeof DocumentRoute
+  '/overview': typeof OverviewRoute
+  '/projects-manage': typeof ProjectsManageRoute
+  '/ticket': typeof TicketRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/backlog': typeof BacklogRoute
+  '/document': typeof DocumentRoute
+  '/overview': typeof OverviewRoute
+  '/projects-manage': typeof ProjectsManageRoute
+  '/ticket': typeof TicketRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/backlog': typeof BacklogRoute
+  '/document': typeof DocumentRoute
+  '/overview': typeof OverviewRoute
+  '/projects-manage': typeof ProjectsManageRoute
+  '/ticket': typeof TicketRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/backlog'
+    | '/document'
+    | '/overview'
+    | '/projects-manage'
+    | '/ticket'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to:
+    | '/'
+    | '/about'
+    | '/backlog'
+    | '/document'
+    | '/overview'
+    | '/projects-manage'
+    | '/ticket'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/backlog'
+    | '/document'
+    | '/overview'
+    | '/projects-manage'
+    | '/ticket'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  BacklogRoute: typeof BacklogRoute
+  DocumentRoute: typeof DocumentRoute
+  OverviewRoute: typeof OverviewRoute
+  ProjectsManageRoute: typeof ProjectsManageRoute
+  TicketRoute: typeof TicketRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/ticket': {
+      id: '/ticket'
+      path: '/ticket'
+      fullPath: '/ticket'
+      preLoaderRoute: typeof TicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects-manage': {
+      id: '/projects-manage'
+      path: '/projects-manage'
+      fullPath: '/projects-manage'
+      preLoaderRoute: typeof ProjectsManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/overview': {
+      id: '/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof OverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/document': {
+      id: '/document'
+      path: '/document'
+      fullPath: '/document'
+      preLoaderRoute: typeof DocumentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backlog': {
+      id: '/backlog'
+      path: '/backlog'
+      fullPath: '/backlog'
+      preLoaderRoute: typeof BacklogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -71,6 +178,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  BacklogRoute: BacklogRoute,
+  DocumentRoute: DocumentRoute,
+  OverviewRoute: OverviewRoute,
+  ProjectsManageRoute: ProjectsManageRoute,
+  TicketRoute: TicketRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
