@@ -5,7 +5,7 @@ members = [
     "shared",
     "tickets",
     "projects",
-    "people", "documents",
+    "people", "documents", "attachment_store",
 ]
 resolver = "2"
 

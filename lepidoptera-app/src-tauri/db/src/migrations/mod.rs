@@ -4,6 +4,8 @@ mod m0003_add_ticket_columns;
 mod m0004_create_projects;
 mod m0005_create_persons;
 mod m0006_drop_schema_version;
+mod m0007_create_documents;
+mod m0008_create_attachments;
 
 use rusqlite_migration::{Migrations};
 
@@ -15,6 +17,8 @@ pub fn get_migrations() -> Migrations<'static> {
         m0004_create_projects::migration(),
         m0005_create_persons::migration(),
         m0006_drop_schema_version::migration(),
+        m0007_create_documents::migration(),
+        m0008_create_attachments::migration(),
       ])
 }
 

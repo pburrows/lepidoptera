@@ -1,0 +1,11 @@
+[package]
+name = "attachment_store"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+anyhow = { workspace = true }
+rusqlite = { workspace = true }
+db = { path = "../db" }
