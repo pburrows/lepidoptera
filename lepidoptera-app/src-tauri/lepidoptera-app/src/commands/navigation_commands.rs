@@ -1,9 +1,10 @@
 use crate::app_context::AppContext;
-use documents::entities::Document;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
-use tauri::{App, State};
+use tauri::State;
+use documents::docuent_ports::NavigationDocument;
 use tickets::entities::Ticket;
+use projects::entities::Project;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NavigationItem {
@@ -31,13 +32,14 @@ pub struct NavigationResponse {
 
 #[tauri::command]
 pub fn get_navigation(
+    project_id: String,
     state: State<'_, Mutex<Arc<AppContext>>>,
 ) -> Result<NavigationResponse, String> {
     let ctx = state.lock().map_err(|_| "Failed to lock context")?;
 
     let tickets = get_all_tickets(&ctx).map_err(|_| "Failed to get tickets")?;
 
-    let documents = get_all_documents(&ctx).map_err(|_| "Failed to get documents")?;
+    let documents = get_all_documents(&ctx, &project_id).map_err(|e| format!("Failed to get documents. {}", e))?;
 
     let mut sections = vec![];
 
@@ -79,24 +81,87 @@ fn build_ticket_section(sections: &mut Vec<NavigationSection>, tickets: &Vec<Tic
     })
 }
 
-fn build_document_section(sections: &mut Vec<NavigationSection>, documents: &Vec<Document>) {
-
-    let doc_tree_item = NavigationItem {
-        id: "doc-tree".to_string(),
-        label: "<Document Tree>".to_string(),
-        icon: None,
-        children: None, //if doc_items.is_empty() { None } else { Some(doc_items) },
-        show_hover_menu: None,
-        unread: None,
+fn build_document_section(sections: &mut Vec<NavigationSection>, documents: &Vec<NavigationDocument>) {
+    let doc_items = if documents.is_empty() {
+        // Show welcome message for empty projects
+        vec![NavigationItem {
+            id: "welcome".to_string(),
+            label: "Welcome to Lepidoptera".to_string(),
+            icon: None,
+            children: None,
+            show_hover_menu: None,
+            unread: None,
+        }]
+    } else {
+        // Build tree structure from flat list
+        build_document_tree(documents)
     };
 
     sections.push(NavigationSection {
         id: "documents".to_string(),
         label: "Documents".to_string(),
         icon: Some("FaBook".to_string()),
-        items: vec![doc_tree_item],
+        items: doc_items,
         spacing_before: Some(true),
     })
+}
+
+fn build_document_tree(documents: &[NavigationDocument]) -> Vec<NavigationItem> {
+    use std::collections::HashMap;
+
+    // Build a map of parent_id -> list of child document IDs
+    let mut children_map: HashMap<Option<String>, Vec<&NavigationDocument>> = HashMap::new();
+    for doc in documents {
+        children_map
+            .entry(doc.parent_id.clone())
+            .or_insert_with(Vec::new)
+            .push(doc);
+    }
+
+    // Recursive function to build NavigationItem tree
+    fn build_item(
+        doc: &NavigationDocument,
+        children_map: &HashMap<Option<String>, Vec<&NavigationDocument>>,
+    ) -> NavigationItem {
+        let doc_id = doc.id.as_ref().unwrap();
+        let children: Option<Vec<NavigationItem>> = children_map
+            .get(&doc.id.clone())
+            .map(|child_docs| {
+                let mut items: Vec<NavigationItem> = child_docs
+                    .iter()
+                    .map(|child_doc| build_item(child_doc, children_map))
+                    .collect();
+                // Sort children by label
+                items.sort_by(|a, b| a.label.cmp(&b.label));
+                items
+            })
+            .filter(|items| !items.is_empty());
+
+        NavigationItem {
+            id: doc_id.clone(),
+            label: doc.title.clone(),
+            icon: None,
+            children,
+            show_hover_menu: None,
+            unread: None,
+        }
+    }
+
+    // Build root items (documents with no parent)
+    let mut root_items: Vec<NavigationItem> = children_map
+        .get(&None)
+        .map(|root_docs| {
+            let mut items: Vec<NavigationItem> = root_docs
+                .iter()
+                .map(|doc| build_item(doc, &children_map))
+                .collect();
+            // Sort root items by label
+            items.sort_by(|a, b| a.label.cmp(&b.label));
+            items
+        })
+        .unwrap_or_default();
+
+    root_items
 }
 
 fn build_top_level_sections(sections: &mut Vec<NavigationSection>) {
@@ -134,6 +199,18 @@ fn get_all_tickets(ctx: &AppContext) -> anyhow::Result<Vec<Ticket>> {
     Ok(vec![])
 }
 
-fn get_all_documents(ctx: &AppContext) -> anyhow::Result<Vec<Document>> {
-    Ok(vec![])
+fn get_all_documents(ctx: &AppContext, project_id: &str) -> anyhow::Result<Vec<NavigationDocument>> {
+    // Get documents for the specified project
+    let documents = ctx.documents.get_document_tree(project_id)?;
+
+    Ok(documents)
+}
+
+#[tauri::command]
+pub fn get_projects(
+    state: State<'_, Mutex<Arc<AppContext>>>,
+) -> Result<Vec<Project>, String> {
+    let ctx = state.lock().map_err(|_| "Failed to lock context")?;
+    let projects = ctx.projects.get_projects().map_err(|e| format!("Failed to get projects: {}", e))?;
+    Ok(projects)
 }

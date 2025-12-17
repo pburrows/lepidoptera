@@ -1,6 +1,7 @@
 use rusqlite::{Row, ToSql};
 use serde::{Deserialize, Serialize};
 use db::repository_base::Entity;
+use db::to_sql_vec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Person {
@@ -38,11 +39,20 @@ impl Entity for Person {
         self.id = Some(id);
     }
 
-    fn insert_values(&self) -> Vec<&dyn ToSql> {
-        vec![&self.display_name, &self.is_active, &self.created_at]
+    fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
+        to_sql_vec![
+            (self.display_name.clone()),
+            (self.is_active),
+            (self.created_at.clone()),
+        ]
     }
 
-    fn update_values(&self) -> Vec<&dyn ToSql> {
-        vec![&self.display_name, &self.is_active, &self.updated_at]
+    fn update_values(&self) -> Vec<Box<dyn ToSql>> {
+        to_sql_vec![
+            (self.display_name.clone()),
+            (self.is_active),
+            (self.updated_at.clone()),
+        ]
     }
+
 }

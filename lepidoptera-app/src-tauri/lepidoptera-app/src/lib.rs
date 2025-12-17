@@ -3,7 +3,7 @@ use crate::commands::ticket_commands::create_ticket;
 use crate::settings::local_settings_store::LocalSettingsStore;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
-use crate::commands::navigation_commands::get_navigation;
+use crate::commands::navigation_commands::{get_navigation, get_projects};
 
 mod app_context;
 mod commands;
@@ -31,7 +31,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet, 
             create_ticket, 
-            get_navigation])
+            get_navigation,
+            get_projects])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

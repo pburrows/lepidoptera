@@ -1,6 +1,7 @@
 use rusqlite::{Row, ToSql};
 use serde::{Deserialize, Serialize};
 use db::repository_base::Entity;
+use db::to_sql_vec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
@@ -19,7 +20,7 @@ impl Entity for Project {
     }
 
     fn columns() -> &'static [&'static str] {
-        &["created_at", "updated_at", "name", "description", "is_active"]
+        &["id", "created_at", "updated_at", "name", "description", "is_active"]
     }
 
     fn from_row(row: &Row) -> rusqlite::Result<Self> {
@@ -41,11 +42,24 @@ impl Entity for Project {
         self.id = Some(id);
     }
 
-    fn insert_values(&self) -> Vec<&dyn ToSql> {
-        vec![&self.name, &self.description, &self.is_active, &self.created_at]
+    fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
+        to_sql_vec![
+            (self.id.clone().unwrap_or_default()),
+            (self.created_at.clone()),
+            (self.updated_at.clone()),
+            (self.name.clone()),
+            (self.description.clone()),
+            (self.is_active),
+        ]
     }
 
-    fn update_values(&self) -> Vec<&dyn ToSql> {
-        vec![&self.name, &self.description, &self.is_active, &self.updated_at]
+    fn update_values(&self) -> Vec<Box<dyn ToSql>> {
+        to_sql_vec![
+            (self.name.clone()),
+            (self.description.clone()),
+            (self.is_active),
+            (self.updated_at.clone()),
+        ]
     }
+
 }

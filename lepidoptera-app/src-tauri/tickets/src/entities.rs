@@ -1,6 +1,7 @@
 use db::repository_base::Entity;
 use rusqlite::{Row, ToSql};
 use serde::{Deserialize, Serialize};
+use db::to_sql_vec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Ticket {
@@ -58,11 +59,32 @@ impl Entity for Ticket {
         self.id = Some(id);
     }
 
-    fn insert_values(&self) -> Vec<&dyn ToSql> {
-        vec![&self.title as &dyn ToSql, &self.description]
+    fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
+        to_sql_vec![
+            self.title.clone(),
+            self.description.clone(),
+            self.status.clone(),
+            self.created_at.clone(),
+            self.updated_at.clone(),
+            self.priority,
+            self.created_by.clone(),
+            self.assigned_to.clone(),
+            self.project_id.clone(),
+        ]
     }
 
-    fn update_values(&self) -> Vec<&dyn ToSql> {
-        vec![&self.title as &dyn ToSql, &self.description]
+    fn update_values(&self) -> Vec<Box<dyn ToSql>> {
+        to_sql_vec![
+            self.title.clone(),
+            self.description.clone(),
+            self.status.clone(),
+            self.created_at.clone(),
+            self.updated_at.clone(),
+            self.priority,
+            self.created_by.clone(),
+            self.assigned_to.clone(),
+            self.project_id.clone(),
+        ]
     }
+
 }

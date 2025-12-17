@@ -56,6 +56,15 @@ interface NavigationResponse {
     sections: NavigationSectionResponse[];
 }
 
+interface Project {
+    id: string | null;
+    created_at: string;
+    updated_at: string | null;
+    name: string;
+    description: string | null;
+    is_active: boolean;
+}
+
 export default function LeftPanel() {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(true);
@@ -64,10 +73,13 @@ export default function LeftPanel() {
     const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [contextMenu, setContextMenu] = useState<{ itemId: string; x: number; y: number } | null>(null);
-    const [selectedProject, setSelectedProject] = useState<string>('Project A');
+    const [selectedProject, setSelectedProject] = useState<string>('');
+    const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
     const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
     const [navSections, setNavSections] = useState<NavSection[]>([]);
     const [isLoadingNavigation, setIsLoadingNavigation] = useState(true);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [isLoadingProjects, setIsLoadingProjects] = useState(true);
     const panelRef = useRef<ImperativePanelHandle>(null);
     const menuRefs = useRef<Map<string, HTMLDivElement>>(new Map());
     const contextMenuRef = useRef<HTMLDivElement>(null);
@@ -232,12 +244,11 @@ export default function LeftPanel() {
         setContextMenu(null);
     };
 
-    const projects = ['Project A', 'Project B', 'Project C'];
-
-    const handleProjectSelect = (project: string) => {
-        setSelectedProject(project);
+    const handleProjectSelect = (project: Project) => {
+        setSelectedProject(project.name);
+        setActiveProjectId(project.id || null);
         setIsProjectDropdownOpen(false);
-        console.log(`Selected project: ${project}`);
+        console.log(`Selected project: ${project.name} (ID: ${project.id})`);
         // TODO: Implement project switching
     };
 
@@ -290,10 +301,15 @@ export default function LeftPanel() {
 
     // Fetch navigation data from Rust backend
     useEffect(() => {
+        if (!activeProjectId) {
+            // Don't fetch navigation if no active project is set
+            return;
+        }
+
         const fetchNavigation = async () => {
             try {
                 setIsLoadingNavigation(true);
-                const response = await invoke<NavigationResponse>('get_navigation');
+                const response = await invoke<NavigationResponse>('get_navigation', { projectId: activeProjectId });
                 const mappedSections = response.sections.map(mapNavigationSection);
                 setNavSections(mappedSections);
             } catch (error) {
@@ -306,6 +322,31 @@ export default function LeftPanel() {
         };
 
         fetchNavigation();
+    }, [activeProjectId]);
+
+    // Fetch projects from Rust backend
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                setIsLoadingProjects(true);
+                const fetchedProjects = await invoke<Project[]>('get_projects');
+                setProjects(fetchedProjects);
+                // Set the first project as active if available and none is selected
+                if (fetchedProjects.length > 0 && !activeProjectId) {
+                    const firstProject = fetchedProjects[0];
+                    setSelectedProject(firstProject.name);
+                    setActiveProjectId(firstProject.id || null);
+                }
+            } catch (error) {
+                console.error('Failed to fetch projects:', error);
+                // Fallback to empty array on error
+                setProjects([]);
+            } finally {
+                setIsLoadingProjects(false);
+            }
+        };
+
+        fetchProjects();
     }, []);
 
     // Fallback navigation sections (used during loading or if fetch fails)
@@ -519,15 +560,21 @@ export default function LeftPanel() {
                                 ref={projectDropdownRef}
                                 className="panel-title-dropdown"
                             >
-                                {projects.map(project => (
-                                    <div
-                                        key={project}
-                                        className={`panel-title-dropdown-item ${project === selectedProject ? 'panel-title-dropdown-item-selected' : ''}`}
-                                        onClick={() => handleProjectSelect(project)}
-                                    >
-                                        {project}
-                                    </div>
-                                ))}
+                                {isLoadingProjects ? (
+                                    <div className="panel-title-dropdown-item">Loading projects...</div>
+                                ) : projects.length === 0 ? (
+                                    <div className="panel-title-dropdown-item">No projects</div>
+                                ) : (
+                                    projects.map(project => (
+                                        <div
+                                            key={project.id || project.name}
+                                            className={`panel-title-dropdown-item ${project.id === activeProjectId ? 'panel-title-dropdown-item-selected' : ''}`}
+                                            onClick={() => handleProjectSelect(project)}
+                                        >
+                                            {project.name}
+                                        </div>
+                                    ))
+                                )}
                                 <div className="panel-title-dropdown-separator"></div>
                                 <div
                                     className="panel-title-dropdown-item"

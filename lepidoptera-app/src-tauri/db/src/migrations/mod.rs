@@ -6,6 +6,9 @@ mod m0005_create_persons;
 mod m0006_drop_schema_version;
 mod m0007_create_documents;
 mod m0008_create_attachments;
+mod m0009_add_document_indexes;
+mod m0010_add_projects_is_active;
+mod m0011_add_document_version_published_fields;
 
 use rusqlite_migration::{Migrations};
 
@@ -19,6 +22,9 @@ pub fn get_migrations() -> Migrations<'static> {
         m0006_drop_schema_version::migration(),
         m0007_create_documents::migration(),
         m0008_create_attachments::migration(),
+        m0009_add_document_indexes::migration(),
+        m0010_add_projects_is_active::migration(),
+        m0011_add_document_version_published_fields::migration(),
       ])
 }
 

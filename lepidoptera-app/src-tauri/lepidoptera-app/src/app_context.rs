@@ -2,18 +2,22 @@ use std::fs::create_dir_all;
 use crate::settings::local_settings_store::LocalSettingsStore;
 use anyhow::Result;
 use db::Connection;
-use projects::project_ports::ProjectsManager;
-use projects::projects_manager::projects_manager::SqliteProjectsManager;
+
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager};
 use tauri::path::BaseDirectory;
-use tickets::tickets_manager::SqliteTicketManager;
 use tickets::tickets_port::TicketsManager;
+use tickets::tickets_manager::manager::SqliteTicketManager;
+use documents::docuent_ports::DocumentsManager;
+use documents::documents_manager::manager::SqliteDocumentsManager;
+use projects::project_ports::ProjectsManager;
+use projects::projects_manager::manager::SqliteProjectsManager;
 use crate::settings::settings_store::SettingsStore;
 
 pub struct AppContext {
     pub tickets: Arc<dyn TicketsManager>,
     pub projects: Arc<dyn ProjectsManager>,
+    pub documents: Arc<dyn DocumentsManager>,
     pub local_settings: LocalSettingsStore,
 }
 
@@ -53,10 +57,12 @@ impl AppContextBuilder {
 
         let tickets_manager = Arc::new(SqliteTicketManager::new(shared_connection.clone()));
         let projects_manager = Arc::new(SqliteProjectsManager::new(shared_connection.clone()));
+        let documents_manager = Arc::new(SqliteDocumentsManager::new(shared_connection.clone()));
 
         Ok(AppContext {
             tickets: tickets_manager,
             projects: projects_manager,
+            documents: documents_manager,
             local_settings: self.settings,
         })
     }
