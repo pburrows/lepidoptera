@@ -32,6 +32,7 @@ interface NavSection {
     items: NavItem[];
     spacingBefore?: boolean; // Add extra vertical space before this section
     contextMenuItems?: ContextMenuItem[]; // Custom right-click menu items (optional)
+    hoverMenuItems?: ContextMenuItem[]; // Custom hover menu items (optional, sections always show hover menu)
 }
 
 // Rust response types (matching the Rust structs)
@@ -226,6 +227,34 @@ export default function LeftPanel() {
         }
 
         return defaultItems;
+    };
+
+    // Get hover menu items for sections (sections always have hover menus)
+    const getSectionHoverMenuItems = (section: NavSection): ContextMenuItem[] => {
+        // If custom hover menu items are provided, use those
+        if (section.hoverMenuItems && section.hoverMenuItems.length > 0) {
+            return section.hoverMenuItems;
+        }
+        
+        // Otherwise, return default hover menu items
+        return [
+            {
+                id: 'mark-as-read',
+                label: 'Mark as Read',
+                onClick: (id) => {
+                    console.log(`Mark as Read clicked for section "${id}"`);
+                    // TODO: Implement mark as read functionality
+                },
+            },
+            {
+                id: 'star',
+                label: 'Star',
+                onClick: (id) => {
+                    console.log(`Star clicked for section "${id}"`);
+                    // TODO: Implement star functionality
+                },
+            },
+        ];
     };
 
     const handleContextMenu = (e: React.MouseEvent, itemId: string, item: NavItem | NavSection) => {
@@ -595,13 +624,17 @@ export default function LeftPanel() {
                     {displayNavSections.map(section => {
                         // If section has no items, render it as a simple clickable item
                         if (section.items.length === 0) {
+                            const isSectionHovered = hoveredItemId === section.id;
+                            const isSectionMenuOpen = openMenuId === section.id;
                             return (
                                 <div 
                                     key={section.id} 
                                     className={`nav-item-wrapper ${section.spacingBefore ? 'nav-item-wrapper-spacing-before' : ''}`}
                                 >
                                     <div
-                                        className="nav-item"
+                                        className="nav-item nav-item-with-menu"
+                                        onMouseEnter={() => setHoveredItemId(section.id)}
+                                        onMouseLeave={() => setHoveredItemId(null)}
                                         onContextMenu={(e) => handleContextMenu(e, section.id, section)}
                                         onClick={() => handleNavClick(section.id)}
                                     >
@@ -609,43 +642,121 @@ export default function LeftPanel() {
                                             <span className="nav-item-icon">{section.icon}</span>
                                         )}
                                         <span className="nav-item-label">{section.label}</span>
+                                        <button
+                                            className={`nav-item-menu-button ${isSectionHovered ? 'nav-item-menu-button-visible' : ''}`}
+                                            data-menu-button={section.id}
+                                            onClick={(e) => handleMenuClick(section.id, e)}
+                                            aria-label="More options"
+                                        >
+                                            <FaEllipsisVertical />
+                                        </button>
                                     </div>
+                                    {isSectionMenuOpen && (() => {
+                                        const menuItems = getSectionHoverMenuItems(section);
+                                        return (
+                                            <div
+                                                ref={(el) => {
+                                                    if (el) {
+                                                        menuRefs.current.set(section.id, el);
+                                                    } else {
+                                                        menuRefs.current.delete(section.id);
+                                                    }
+                                                }}
+                                                className="nav-item-menu"
+                                            >
+                                                {menuItems.map(menuItem => (
+                                                    <div
+                                                        key={menuItem.id}
+                                                        className="nav-item-menu-item"
+                                                        onClick={() => {
+                                                            menuItem.onClick(section.id);
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                    >
+                                                        {menuItem.label}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             );
                         }
 
                         // Otherwise, render as an expandable section
                         const isSectionExpanded = expandedSections.has(section.id);
+                        const isSectionHovered = hoveredItemId === section.id;
+                        const isSectionMenuOpen = openMenuId === section.id;
                         return (
                             <div 
                                 key={section.id} 
                                 className={`nav-section ${section.spacingBefore ? 'nav-section-spacing-before' : ''}`}
                             >
-                                <div
-                                    className="nav-section-header"
-                                    onContextMenu={(e) => handleContextMenu(e, section.id, section)}
-                                >
-                                    <span 
-                                        className="nav-section-chevron"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleSection(section.id);
-                                        }}
+                                <div className="nav-section-header-wrapper">
+                                    <div
+                                        className="nav-section-header nav-section-header-with-menu"
+                                        onMouseEnter={() => setHoveredItemId(section.id)}
+                                        onMouseLeave={() => setHoveredItemId(null)}
+                                        onContextMenu={(e) => handleContextMenu(e, section.id, section)}
                                     >
-                                        {isSectionExpanded ? <FaChevronDown /> : <FaChevronRight />}
-                                    </span>
-                                    <div 
-                                        className="nav-section-content"
-                                        onClick={() => {
-                                            const route = getRouteForItem(section.id);
-                                            if (route) {
-                                                handleNavClick(section.id);
-                                            }
-                                        }}
-                                    >
-                                        <span className="nav-section-icon">{section.icon}</span>
-                                        <span className="nav-section-label">{section.label}</span>
+                                        <span 
+                                            className="nav-section-chevron"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleSection(section.id);
+                                            }}
+                                        >
+                                            {isSectionExpanded ? <FaChevronDown /> : <FaChevronRight />}
+                                        </span>
+                                        <div 
+                                            className="nav-section-content"
+                                            onClick={() => {
+                                                const route = getRouteForItem(section.id);
+                                                if (route) {
+                                                    handleNavClick(section.id);
+                                                }
+                                            }}
+                                        >
+                                            <span className="nav-section-icon">{section.icon}</span>
+                                            <span className="nav-section-label">{section.label}</span>
+                                        </div>
+                                        <button
+                                            className={`nav-item-menu-button ${isSectionHovered ? 'nav-item-menu-button-visible' : ''}`}
+                                            data-menu-button={section.id}
+                                            onClick={(e) => handleMenuClick(section.id, e)}
+                                            aria-label="More options"
+                                        >
+                                            <FaEllipsisVertical />
+                                        </button>
                                     </div>
+                                    {isSectionMenuOpen && (() => {
+                                        const menuItems = getSectionHoverMenuItems(section);
+                                        return (
+                                            <div
+                                                ref={(el) => {
+                                                    if (el) {
+                                                        menuRefs.current.set(section.id, el);
+                                                    } else {
+                                                        menuRefs.current.delete(section.id);
+                                                    }
+                                                }}
+                                                className="nav-item-menu"
+                                            >
+                                                {menuItems.map(menuItem => (
+                                                    <div
+                                                        key={menuItem.id}
+                                                        className="nav-item-menu-item"
+                                                        onClick={() => {
+                                                            menuItem.onClick(section.id);
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                    >
+                                                        {menuItem.label}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                                 {isSectionExpanded && section.items.length > 0 && (
                                     <div className="nav-section-items">

@@ -89,7 +89,7 @@ fn build_document_section(sections: &mut Vec<NavigationSection>, documents: &Vec
             label: "Welcome to Lepidoptera".to_string(),
             icon: None,
             children: None,
-            show_hover_menu: None,
+            show_hover_menu: Some(true),
             unread: None,
         }]
     } else {

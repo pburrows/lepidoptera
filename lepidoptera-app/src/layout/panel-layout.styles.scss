@@ -229,6 +229,7 @@
 .nav-section {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .nav-section-spacing-before {
@@ -250,6 +251,19 @@
   font-weight: var(--font-weight-medium);
   color: var(--gray-11);
   transition: background-color 150ms ease, color 150ms ease;
+  position: relative;
+}
+
+.nav-section-header-with-menu {
+  padding-right: var(--space-8); // Make room for menu button
+}
+
+// Position section menu relative to header
+.nav-section-header + .nav-item-menu {
+  position: absolute;
+  top: 100%;
+  right: var(--space-2);
+  margin-top: var(--space-1);
 }
 
 .nav-section-chevron {
@@ -455,6 +469,11 @@
   min-width: 150px;
   z-index: 100;
   overflow: hidden;
+}
+
+// Section header wrapper for menu positioning
+.nav-section-header-wrapper {
+  position: relative;
 }
 
 .nav-item-menu-item {
