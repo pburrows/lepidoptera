@@ -68,6 +68,12 @@ export interface RichTextEditorProps {
    * Custom extensions to add to the editor
    */
   extensions?: any[];
+  
+  /**
+   * Callback fired when editor instance is ready
+   * @param editor - The Tiptap editor instance
+   */
+  onEditorReady?: (editor: any) => void;
 }
 
 export interface EditorToolbarButton {

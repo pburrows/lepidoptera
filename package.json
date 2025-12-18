@@ -1,9 +1,5 @@
 {
 	"dependencies": {
-		"@hello-pangea/dnd": "^18.0.1",
-		"motion": "^12.23.26",
-		"react-dropzone": "^14.3.8",
-		"react-hook-form": "^7.68.0",
-		"recharts": "^3.6.0"
+
 	}
 }

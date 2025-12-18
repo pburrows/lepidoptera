@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Panel, ImperativePanelHandle } from 'react-resizable-panels';
 import { useNavigate } from '@tanstack/react-router';
-import { invoke } from '@tauri-apps/api/core';
 import { FaChevronLeft, FaChevronRight, FaChevronDown, FaChevronUp } from 'react-icons/fa6';
 import {FaChevronDown as FaChevronDownSolid, FaRunning} from 'react-icons/fa';
 import { FaFolder, FaFolderOpen, FaFile, FaStar, FaClock, FaUser, FaList, FaRocket, FaBook, FaEllipsisVertical } from 'react-icons/fa6';
+import { useNavigationStore } from '../stores/navigation-store';
 import './panel-layout.styles.scss';
 
 const COLLAPSED_SIZE = 5;
@@ -35,36 +35,8 @@ interface NavSection {
     hoverMenuItems?: ContextMenuItem[]; // Custom hover menu items (optional, sections always show hover menu)
 }
 
-// Rust response types (matching the Rust structs)
-interface NavigationItemResponse {
-    id: string;
-    label: string;
-    icon?: string | null;
-    children?: NavigationItemResponse[] | null;
-    show_hover_menu?: boolean | null;
-    unread?: boolean | null;
-}
-
-interface NavigationSectionResponse {
-    id: string;
-    label: string;
-    icon?: string | null;
-    items: NavigationItemResponse[];
-    spacing_before?: boolean | null;
-}
-
-interface NavigationResponse {
-    sections: NavigationSectionResponse[];
-}
-
-interface Project {
-    id: string | null;
-    created_at: string;
-    updated_at: string | null;
-    name: string;
-    description: string | null;
-    is_active: boolean;
-}
+// Import types from store
+import type { NavigationItemResponse, NavigationSectionResponse, Project } from '../stores/navigation-store';
 
 export default function LeftPanel() {
     const navigate = useNavigate();
@@ -74,18 +46,29 @@ export default function LeftPanel() {
     const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [contextMenu, setContextMenu] = useState<{ itemId: string; x: number; y: number } | null>(null);
-    const [selectedProject, setSelectedProject] = useState<string>('');
-    const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
     const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
-    const [navSections, setNavSections] = useState<NavSection[]>([]);
-    const [isLoadingNavigation, setIsLoadingNavigation] = useState(true);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [isLoadingProjects, setIsLoadingProjects] = useState(true);
     const panelRef = useRef<ImperativePanelHandle>(null);
     const menuRefs = useRef<Map<string, HTMLDivElement>>(new Map());
     const contextMenuRef = useRef<HTMLDivElement>(null);
     const projectDropdownRef = useRef<HTMLDivElement>(null);
     const projectButtonRef = useRef<HTMLButtonElement>(null);
+
+    // Use navigation store
+    const {
+        projects,
+        activeProjectId,
+        isLoadingProjects,
+        navigation,
+        isLoadingNavigation,
+        fetchProjects,
+        setActiveProjectId,
+    } = useNavigationStore();
+
+    // Derive selected project name from store
+    const selectedProject = useMemo(() => {
+        const project = projects.find(p => p.id === activeProjectId);
+        return project?.name || '';
+    }, [projects, activeProjectId]);
 
     const handleToggle = () => {
         if (panelRef.current) {
@@ -121,13 +104,36 @@ export default function LeftPanel() {
         });
     };
 
+    // Helper function to check if an item belongs to the documents section
+    const isDocumentItem = useCallback((itemId: string): boolean => {
+        // Check if item is in documents section by searching navigation structure
+        if (!navigation) return false;
+        
+        for (const section of navigation.sections) {
+            if (section.id === 'documents') {
+                const findItem = (items: NavigationItemResponse[]): boolean => {
+                    for (const item of items) {
+                        if (item.id === itemId) return true;
+                        if (item.children) {
+                            if (findItem(item.children)) return true;
+                        }
+                    }
+                    return false;
+                };
+                return findItem(section.items);
+            }
+        }
+        return false;
+    }, [navigation]);
+
     // Map navigation item IDs to routes
-    const getRouteForItem = (itemId: string): string | null => {
+    const getRouteForItem = useCallback((itemId: string): string | null => {
+        // Static route mappings
         const routeMap: Record<string, string> = {
-            'overview': '/overview',
+            'overview': '/',
             'backlog': '/backlog',
-            'doc-tree': '/document',
-            'documents': '/document', // Section header can also navigate
+            'doc-tree': '/document/new/edit', // Navigate to new document creation
+            'documents': '/document/new/edit', // Section header navigates to new document
             'tickets': '/backlog', // Tickets section can navigate to backlog
             // Epics, Stories, and Tasks all go to ticket page
             'epic-a': '/ticket',
@@ -142,8 +148,19 @@ export default function LeftPanel() {
             'sprint-1': '/ticket',
             'sprints': '/ticket', // Sprints section can navigate
         };
-        return routeMap[itemId] || null;
-    };
+        
+        // Check static routes first
+        if (routeMap[itemId]) {
+            return routeMap[itemId];
+        }
+        
+        // If item belongs to documents section, navigate to document view
+        if (isDocumentItem(itemId)) {
+            return `/document/${itemId}`;
+        }
+        
+        return null;
+    }, [isDocumentItem]);
 
     const handleNavClick = (itemId: string) => {
         const route = getRouteForItem(itemId);
@@ -273,12 +290,10 @@ export default function LeftPanel() {
         setContextMenu(null);
     };
 
-    const handleProjectSelect = (project: Project) => {
-        setSelectedProject(project.name);
-        setActiveProjectId(project.id || null);
+    const handleProjectSelect = async (project: Project) => {
+        await setActiveProjectId(project.id || null);
         setIsProjectDropdownOpen(false);
         console.log(`Selected project: ${project.name} (ID: ${project.id})`);
-        // TODO: Implement project switching
     };
 
     const handleManageProjects = () => {
@@ -287,7 +302,7 @@ export default function LeftPanel() {
     };
 
     // Icon mapping function - maps icon string names to React components
-    const mapIcon = (iconName: string | null | undefined): React.ReactNode | undefined => {
+    const mapIcon = useCallback((iconName: string | null | undefined): React.ReactNode | undefined => {
         if (!iconName) return undefined;
         
         const iconMap: Record<string, React.ReactNode> = {
@@ -304,10 +319,10 @@ export default function LeftPanel() {
         };
         
         return iconMap[iconName] || undefined;
-    };
+    }, []);
 
     // Map Rust response types to TypeScript types
-    const mapNavigationItem = (item: NavigationItemResponse): NavItem => {
+    const mapNavigationItem = useCallback((item: NavigationItemResponse): NavItem => {
         return {
             id: item.id,
             label: item.label,
@@ -316,9 +331,9 @@ export default function LeftPanel() {
             showHoverMenu: item.show_hover_menu ?? undefined,
             unread: item.unread ?? undefined,
         };
-    };
+    }, [mapIcon]);
 
-    const mapNavigationSection = (section: NavigationSectionResponse): NavSection => {
+    const mapNavigationSection = useCallback((section: NavigationSectionResponse): NavSection => {
         return {
             id: section.id,
             label: section.label,
@@ -326,57 +341,21 @@ export default function LeftPanel() {
             items: section.items.map(mapNavigationItem),
             spacingBefore: section.spacing_before ?? undefined,
         };
-    };
+    }, [mapIcon, mapNavigationItem]);
 
-    // Fetch navigation data from Rust backend
+    // Fetch projects on mount
     useEffect(() => {
-        if (!activeProjectId) {
-            // Don't fetch navigation if no active project is set
-            return;
-        }
-
-        const fetchNavigation = async () => {
-            try {
-                setIsLoadingNavigation(true);
-                const response = await invoke<NavigationResponse>('get_navigation', { projectId: activeProjectId });
-                const mappedSections = response.sections.map(mapNavigationSection);
-                setNavSections(mappedSections);
-            } catch (error) {
-                console.error('Failed to fetch navigation:', error);
-                // Fallback to empty array on error
-                setNavSections([]);
-            } finally {
-                setIsLoadingNavigation(false);
-            }
-        };
-
-        fetchNavigation();
-    }, [activeProjectId]);
-
-    // Fetch projects from Rust backend
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                setIsLoadingProjects(true);
-                const fetchedProjects = await invoke<Project[]>('get_projects');
-                setProjects(fetchedProjects);
-                // Set the first project as active if available and none is selected
-                if (fetchedProjects.length > 0 && !activeProjectId) {
-                    const firstProject = fetchedProjects[0];
-                    setSelectedProject(firstProject.name);
-                    setActiveProjectId(firstProject.id || null);
-                }
-            } catch (error) {
-                console.error('Failed to fetch projects:', error);
-                // Fallback to empty array on error
-                setProjects([]);
-            } finally {
-                setIsLoadingProjects(false);
-            }
-        };
-
         fetchProjects();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // fetchProjects is stable from Zustand store
+
+    // Map navigation data from store to NavSection format
+    const navSections = useMemo(() => {
+        if (!navigation) {
+            return [];
+        }
+        return navigation.sections.map(mapNavigationSection);
+    }, [navigation, mapNavigationSection]);
 
     // Fallback navigation sections (used during loading or if fetch fails)
     const fallbackNavSections: NavSection[] = [

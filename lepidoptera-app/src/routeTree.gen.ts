@@ -16,6 +16,9 @@ import { Route as DocumentRouteImport } from './routes/document'
 import { Route as BacklogRouteImport } from './routes/backlog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocumentIdRouteImport } from './routes/document/$id'
+import { Route as DocumentNewEditRouteImport } from './routes/document/new.edit'
+import { Route as DocumentIdEditRouteImport } from './routes/document/$id.edit'
 
 const TicketRoute = TicketRouteImport.update({
   id: '/ticket',
@@ -52,34 +55,58 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocumentIdRoute = DocumentIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => DocumentRoute,
+} as any)
+const DocumentNewEditRoute = DocumentNewEditRouteImport.update({
+  id: '/new/edit',
+  path: '/new/edit',
+  getParentRoute: () => DocumentRoute,
+} as any)
+const DocumentIdEditRoute = DocumentIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => DocumentIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/backlog': typeof BacklogRoute
-  '/document': typeof DocumentRoute
+  '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
   '/ticket': typeof TicketRoute
+  '/document/$id': typeof DocumentIdRouteWithChildren
+  '/document/$id/edit': typeof DocumentIdEditRoute
+  '/document/new/edit': typeof DocumentNewEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/backlog': typeof BacklogRoute
-  '/document': typeof DocumentRoute
+  '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
   '/ticket': typeof TicketRoute
+  '/document/$id': typeof DocumentIdRouteWithChildren
+  '/document/$id/edit': typeof DocumentIdEditRoute
+  '/document/new/edit': typeof DocumentNewEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/backlog': typeof BacklogRoute
-  '/document': typeof DocumentRoute
+  '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
   '/ticket': typeof TicketRoute
+  '/document/$id': typeof DocumentIdRouteWithChildren
+  '/document/$id/edit': typeof DocumentIdEditRoute
+  '/document/new/edit': typeof DocumentNewEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +118,9 @@ export interface FileRouteTypes {
     | '/overview'
     | '/projects-manage'
     | '/ticket'
+    | '/document/$id'
+    | '/document/$id/edit'
+    | '/document/new/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +130,9 @@ export interface FileRouteTypes {
     | '/overview'
     | '/projects-manage'
     | '/ticket'
+    | '/document/$id'
+    | '/document/$id/edit'
+    | '/document/new/edit'
   id:
     | '__root__'
     | '/'
@@ -109,13 +142,16 @@ export interface FileRouteTypes {
     | '/overview'
     | '/projects-manage'
     | '/ticket'
+    | '/document/$id'
+    | '/document/$id/edit'
+    | '/document/new/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   BacklogRoute: typeof BacklogRoute
-  DocumentRoute: typeof DocumentRoute
+  DocumentRoute: typeof DocumentRouteWithChildren
   OverviewRoute: typeof OverviewRoute
   ProjectsManageRoute: typeof ProjectsManageRoute
   TicketRoute: typeof TicketRoute
@@ -172,14 +208,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/document/$id': {
+      id: '/document/$id'
+      path: '/$id'
+      fullPath: '/document/$id'
+      preLoaderRoute: typeof DocumentIdRouteImport
+      parentRoute: typeof DocumentRoute
+    }
+    '/document/new/edit': {
+      id: '/document/new/edit'
+      path: '/new/edit'
+      fullPath: '/document/new/edit'
+      preLoaderRoute: typeof DocumentNewEditRouteImport
+      parentRoute: typeof DocumentRoute
+    }
+    '/document/$id/edit': {
+      id: '/document/$id/edit'
+      path: '/edit'
+      fullPath: '/document/$id/edit'
+      preLoaderRoute: typeof DocumentIdEditRouteImport
+      parentRoute: typeof DocumentIdRoute
+    }
   }
 }
+
+interface DocumentIdRouteChildren {
+  DocumentIdEditRoute: typeof DocumentIdEditRoute
+}
+
+const DocumentIdRouteChildren: DocumentIdRouteChildren = {
+  DocumentIdEditRoute: DocumentIdEditRoute,
+}
+
+const DocumentIdRouteWithChildren = DocumentIdRoute._addFileChildren(
+  DocumentIdRouteChildren,
+)
+
+interface DocumentRouteChildren {
+  DocumentIdRoute: typeof DocumentIdRouteWithChildren
+  DocumentNewEditRoute: typeof DocumentNewEditRoute
+}
+
+const DocumentRouteChildren: DocumentRouteChildren = {
+  DocumentIdRoute: DocumentIdRouteWithChildren,
+  DocumentNewEditRoute: DocumentNewEditRoute,
+}
+
+const DocumentRouteWithChildren = DocumentRoute._addFileChildren(
+  DocumentRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   BacklogRoute: BacklogRoute,
-  DocumentRoute: DocumentRoute,
+  DocumentRoute: DocumentRouteWithChildren,
   OverviewRoute: OverviewRoute,
   ProjectsManageRoute: ProjectsManageRoute,
   TicketRoute: TicketRoute,
