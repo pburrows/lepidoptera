@@ -1897,7 +1897,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "tauri-plugin-window-state",
- "tickets",
+ "work_items",
 ]
 
 [[package]]
@@ -4056,16 +4056,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tickets"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "db",
- "rusqlite",
- "serde",
-]
-
-[[package]]
 name = "time"
 version = "0.3.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5174,6 +5164,16 @@ name = "wit-bindgen"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
+
+[[package]]
+name = "work_items"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "rusqlite",
+ "serde",
+]
 
 [[package]]
 name = "writeable"

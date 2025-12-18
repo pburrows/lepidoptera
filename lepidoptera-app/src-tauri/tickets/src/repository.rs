@@ -1,8 +1,8 @@
-use crate::entities::Ticket;
+use crate::entities::WorkItem;
 use anyhow::Result;
 
-pub trait TicketsRepository: Send + Sync {
-    fn find_by_id(&self, id: &str) -> Result<Option<Ticket>>;
+pub trait WorkItemsRepository: Send + Sync {
+    fn find_by_id(&self, id: &str) -> Result<Option<WorkItem>>;
 
-    fn create(&self, ticket: Ticket) -> Result<(Ticket)>;
+    fn create(&self, work_item: WorkItem) -> Result<(WorkItem)>;
 }

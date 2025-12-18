@@ -126,27 +126,38 @@ export default function LeftPanel() {
         return false;
     }, [navigation]);
 
+    // Helper function to check if an item belongs to the work items section
+    const isWorkItemItem = useCallback((itemId: string): boolean => {
+        // Check if item is in work items section by searching navigation structure
+        if (!navigation) return false;
+        
+        for (const section of navigation.sections) {
+            if (section.id === 'work_items') {
+                const findItem = (items: NavigationItemResponse[]): boolean => {
+                    for (const item of items) {
+                        if (item.id === itemId) return true;
+                        if (item.children) {
+                            if (findItem(item.children)) return true;
+                        }
+                    }
+                    return false;
+                };
+                return findItem(section.items);
+            }
+        }
+        return false;
+    }, [navigation]);
+
     // Map navigation item IDs to routes
     const getRouteForItem = useCallback((itemId: string): string | null => {
         // Static route mappings
         const routeMap: Record<string, string> = {
             'overview': '/',
-            'backlog': '/backlog',
+            'backlog': '/work-items/backlog',
             'doc-tree': '/document/new/edit', // Navigate to new document creation
             'documents': '/document/new/edit', // Section header navigates to new document
-            'tickets': '/backlog', // Tickets section can navigate to backlog
-            // Epics, Stories, and Tasks all go to ticket page
-            'epic-a': '/ticket',
-            'epic-b': '/ticket',
-            'epic-d': '/ticket',
-            'story-a': '/ticket',
-            'story-b': '/ticket',
-            'story-c': '/ticket',
-            'story-d': '/ticket',
-            'task-a': '/ticket',
-            'task-b': '/ticket',
-            'sprint-1': '/ticket',
-            'sprints': '/ticket', // Sprints section can navigate
+            'work_items': '/work-items/backlog', // Work items section can navigate to backlog
+            'sprints': '/work-items/backlog', // Sprints section can navigate to backlog
         };
         
         // Check static routes first
@@ -159,8 +170,13 @@ export default function LeftPanel() {
             return `/document/${itemId}`;
         }
         
+        // If item belongs to work items section, navigate to work item view
+        if (isWorkItemItem(itemId)) {
+            return `/work-items/${itemId}`;
+        }
+        
         return null;
-    }, [isDocumentItem]);
+    }, [isDocumentItem, isWorkItemItem]);
 
     const handleNavClick = (itemId: string) => {
         const route = getRouteForItem(itemId);
@@ -364,8 +380,8 @@ export default function LeftPanel() {
         { id: 'recent', label: 'Recent', icon: <FaClock />, items: [] },
         { id: 'starred', label: 'Starred', icon: <FaStar />, items: [] },
         {
-            id: 'tickets',
-            label: 'Tickets',
+            id: 'work_items',
+            label: 'Work Items',
             icon: <FaList />,
             items: [
                 {

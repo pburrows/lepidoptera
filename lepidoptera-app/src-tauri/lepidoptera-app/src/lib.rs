@@ -1,5 +1,5 @@
 use crate::app_context::AppContextBuilder;
-use crate::commands::ticket_commands::create_ticket;
+use crate::commands::work_item_commands::create_work_item;
 use crate::settings::local_settings_store::LocalSettingsStore;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
@@ -30,7 +30,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet, 
-            create_ticket, 
+            create_work_item, 
             get_navigation,
             get_projects])
         .run(tauri::generate_context!())

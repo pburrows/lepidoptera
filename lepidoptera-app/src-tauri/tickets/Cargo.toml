@@ -1,5 +1,5 @@
 [package]
-name = "tickets"
+name = "work_items"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

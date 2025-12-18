@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use db::to_sql_vec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Ticket {
+pub struct WorkItem {
     pub id: Option<String>,
     pub title: String,
     pub description: Option<String>,
@@ -17,9 +17,9 @@ pub struct Ticket {
     pub project_id: String,
 }
 
-impl Entity for Ticket {
+impl Entity for WorkItem {
     fn table_name() -> &'static str {
-        "tickets"
+        "work_items"
     }
 
     fn columns() -> &'static [&'static str] {
@@ -88,3 +88,4 @@ impl Entity for Ticket {
     }
 
 }
+

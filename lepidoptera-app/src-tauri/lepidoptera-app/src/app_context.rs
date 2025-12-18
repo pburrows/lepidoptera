@@ -6,8 +6,8 @@ use db::Connection;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager};
 use tauri::path::BaseDirectory;
-use tickets::tickets_port::TicketsManager;
-use tickets::tickets_manager::manager::SqliteTicketManager;
+use work_items::work_items_port::WorkItemsManager;
+use work_items::work_items_manager::manager::SqliteWorkItemManager;
 use documents::docuent_ports::DocumentsManager;
 use documents::documents_manager::manager::SqliteDocumentsManager;
 use projects::project_ports::ProjectsManager;
@@ -15,7 +15,7 @@ use projects::projects_manager::manager::SqliteProjectsManager;
 use crate::settings::settings_store::SettingsStore;
 
 pub struct AppContext {
-    pub tickets: Arc<dyn TicketsManager>,
+    pub work_items: Arc<dyn WorkItemsManager>,
     pub projects: Arc<dyn ProjectsManager>,
     pub documents: Arc<dyn DocumentsManager>,
     pub local_settings: LocalSettingsStore,
@@ -55,12 +55,12 @@ impl AppContextBuilder {
         let conn = Connection::new(dp_path.as_str())?;
         let shared_connection = Arc::new(Mutex::new(conn));
 
-        let tickets_manager = Arc::new(SqliteTicketManager::new(shared_connection.clone()));
+        let work_items_manager = Arc::new(SqliteWorkItemManager::new(shared_connection.clone()));
         let projects_manager = Arc::new(SqliteProjectsManager::new(shared_connection.clone()));
         let documents_manager = Arc::new(SqliteDocumentsManager::new(shared_connection.clone()));
 
         Ok(AppContext {
-            tickets: tickets_manager,
+            work_items: work_items_manager,
             projects: projects_manager,
             documents: documents_manager,
             local_settings: self.settings,

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tauri::State;
 use documents::docuent_ports::NavigationDocument;
-use tickets::entities::Ticket;
+use work_items::entities::WorkItem;
 use projects::entities::Project;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,20 +37,20 @@ pub fn get_navigation(
 ) -> Result<NavigationResponse, String> {
     let ctx = state.lock().map_err(|_| "Failed to lock context")?;
 
-    let tickets = get_all_tickets(&ctx).map_err(|_| "Failed to get tickets")?;
+    let work_items = get_all_work_items(&ctx).map_err(|_| "Failed to get work_items")?;
 
     let documents = get_all_documents(&ctx, &project_id).map_err(|e| format!("Failed to get documents. {}", e))?;
 
     let mut sections = vec![];
 
     build_top_level_sections(&mut sections);
-    build_ticket_section(&mut sections, &tickets);
+    build_work_item_section(&mut sections, &work_items);
     build_document_section(&mut sections, &documents);
 
     Ok(NavigationResponse { sections })
 }
 
-fn build_ticket_section(sections: &mut Vec<NavigationSection>, tickets: &Vec<Ticket>) {
+fn build_work_item_section(sections: &mut Vec<NavigationSection>, work_items: &Vec<WorkItem>) {
     let mut backlog_items = Vec::new();
     let mut sprint_items = Vec::new();
 
@@ -73,8 +73,8 @@ fn build_ticket_section(sections: &mut Vec<NavigationSection>, tickets: &Vec<Tic
     };
 
     sections.push(NavigationSection {
-        id: "tickets".to_string(),
-        label: "Tickets".to_string(),
+        id: "work_items".to_string(),
+        label: "Work Items".to_string(),
         icon: Some("FaList".to_string()),
         items: vec![backlog_item, sprints_item],
         spacing_before: Some(true),
@@ -195,7 +195,7 @@ fn build_top_level_sections(sections: &mut Vec<NavigationSection>) {
     });
 }
 
-fn get_all_tickets(ctx: &AppContext) -> anyhow::Result<Vec<Ticket>> {
+fn get_all_work_items(ctx: &AppContext) -> anyhow::Result<Vec<WorkItem>> {
     Ok(vec![])
 }
 

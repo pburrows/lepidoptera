@@ -9,20 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TicketRouteImport } from './routes/ticket'
+import { Route as WorkItemsRouteImport } from './routes/work-items'
 import { Route as ProjectsManageRouteImport } from './routes/projects-manage'
 import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as DocumentRouteImport } from './routes/document'
 import { Route as BacklogRouteImport } from './routes/backlog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkItemsBacklogRouteImport } from './routes/work-items/backlog'
+import { Route as WorkItemsIdRouteImport } from './routes/work-items/$id'
 import { Route as DocumentIdRouteImport } from './routes/document/$id'
+import { Route as WorkItemsNewEditRouteImport } from './routes/work-items/new.edit'
+import { Route as WorkItemsIdEditRouteImport } from './routes/work-items/$id.edit'
 import { Route as DocumentNewEditRouteImport } from './routes/document/new.edit'
 import { Route as DocumentIdEditRouteImport } from './routes/document/$id.edit'
 
-const TicketRoute = TicketRouteImport.update({
-  id: '/ticket',
-  path: '/ticket',
+const WorkItemsRoute = WorkItemsRouteImport.update({
+  id: '/work-items',
+  path: '/work-items',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsManageRoute = ProjectsManageRouteImport.update({
@@ -55,10 +59,30 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkItemsBacklogRoute = WorkItemsBacklogRouteImport.update({
+  id: '/backlog',
+  path: '/backlog',
+  getParentRoute: () => WorkItemsRoute,
+} as any)
+const WorkItemsIdRoute = WorkItemsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => WorkItemsRoute,
+} as any)
 const DocumentIdRoute = DocumentIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => DocumentRoute,
+} as any)
+const WorkItemsNewEditRoute = WorkItemsNewEditRouteImport.update({
+  id: '/new/edit',
+  path: '/new/edit',
+  getParentRoute: () => WorkItemsRoute,
+} as any)
+const WorkItemsIdEditRoute = WorkItemsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => WorkItemsIdRoute,
 } as any)
 const DocumentNewEditRoute = DocumentNewEditRouteImport.update({
   id: '/new/edit',
@@ -78,10 +102,14 @@ export interface FileRoutesByFullPath {
   '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
-  '/ticket': typeof TicketRoute
+  '/work-items': typeof WorkItemsRouteWithChildren
   '/document/$id': typeof DocumentIdRouteWithChildren
+  '/work-items/$id': typeof WorkItemsIdRouteWithChildren
+  '/work-items/backlog': typeof WorkItemsBacklogRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
+  '/work-items/$id/edit': typeof WorkItemsIdEditRoute
+  '/work-items/new/edit': typeof WorkItemsNewEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -90,10 +118,14 @@ export interface FileRoutesByTo {
   '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
-  '/ticket': typeof TicketRoute
+  '/work-items': typeof WorkItemsRouteWithChildren
   '/document/$id': typeof DocumentIdRouteWithChildren
+  '/work-items/$id': typeof WorkItemsIdRouteWithChildren
+  '/work-items/backlog': typeof WorkItemsBacklogRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
+  '/work-items/$id/edit': typeof WorkItemsIdEditRoute
+  '/work-items/new/edit': typeof WorkItemsNewEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -103,10 +135,14 @@ export interface FileRoutesById {
   '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
-  '/ticket': typeof TicketRoute
+  '/work-items': typeof WorkItemsRouteWithChildren
   '/document/$id': typeof DocumentIdRouteWithChildren
+  '/work-items/$id': typeof WorkItemsIdRouteWithChildren
+  '/work-items/backlog': typeof WorkItemsBacklogRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
+  '/work-items/$id/edit': typeof WorkItemsIdEditRoute
+  '/work-items/new/edit': typeof WorkItemsNewEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,10 +153,14 @@ export interface FileRouteTypes {
     | '/document'
     | '/overview'
     | '/projects-manage'
-    | '/ticket'
+    | '/work-items'
     | '/document/$id'
+    | '/work-items/$id'
+    | '/work-items/backlog'
     | '/document/$id/edit'
     | '/document/new/edit'
+    | '/work-items/$id/edit'
+    | '/work-items/new/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -129,10 +169,14 @@ export interface FileRouteTypes {
     | '/document'
     | '/overview'
     | '/projects-manage'
-    | '/ticket'
+    | '/work-items'
     | '/document/$id'
+    | '/work-items/$id'
+    | '/work-items/backlog'
     | '/document/$id/edit'
     | '/document/new/edit'
+    | '/work-items/$id/edit'
+    | '/work-items/new/edit'
   id:
     | '__root__'
     | '/'
@@ -141,10 +185,14 @@ export interface FileRouteTypes {
     | '/document'
     | '/overview'
     | '/projects-manage'
-    | '/ticket'
+    | '/work-items'
     | '/document/$id'
+    | '/work-items/$id'
+    | '/work-items/backlog'
     | '/document/$id/edit'
     | '/document/new/edit'
+    | '/work-items/$id/edit'
+    | '/work-items/new/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -154,16 +202,16 @@ export interface RootRouteChildren {
   DocumentRoute: typeof DocumentRouteWithChildren
   OverviewRoute: typeof OverviewRoute
   ProjectsManageRoute: typeof ProjectsManageRoute
-  TicketRoute: typeof TicketRoute
+  WorkItemsRoute: typeof WorkItemsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/ticket': {
-      id: '/ticket'
-      path: '/ticket'
-      fullPath: '/ticket'
-      preLoaderRoute: typeof TicketRouteImport
+    '/work-items': {
+      id: '/work-items'
+      path: '/work-items'
+      fullPath: '/work-items'
+      preLoaderRoute: typeof WorkItemsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects-manage': {
@@ -208,12 +256,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/work-items/backlog': {
+      id: '/work-items/backlog'
+      path: '/backlog'
+      fullPath: '/work-items/backlog'
+      preLoaderRoute: typeof WorkItemsBacklogRouteImport
+      parentRoute: typeof WorkItemsRoute
+    }
+    '/work-items/$id': {
+      id: '/work-items/$id'
+      path: '/$id'
+      fullPath: '/work-items/$id'
+      preLoaderRoute: typeof WorkItemsIdRouteImport
+      parentRoute: typeof WorkItemsRoute
+    }
     '/document/$id': {
       id: '/document/$id'
       path: '/$id'
       fullPath: '/document/$id'
       preLoaderRoute: typeof DocumentIdRouteImport
       parentRoute: typeof DocumentRoute
+    }
+    '/work-items/new/edit': {
+      id: '/work-items/new/edit'
+      path: '/new/edit'
+      fullPath: '/work-items/new/edit'
+      preLoaderRoute: typeof WorkItemsNewEditRouteImport
+      parentRoute: typeof WorkItemsRoute
+    }
+    '/work-items/$id/edit': {
+      id: '/work-items/$id/edit'
+      path: '/edit'
+      fullPath: '/work-items/$id/edit'
+      preLoaderRoute: typeof WorkItemsIdEditRouteImport
+      parentRoute: typeof WorkItemsIdRoute
     }
     '/document/new/edit': {
       id: '/document/new/edit'
@@ -258,6 +334,34 @@ const DocumentRouteWithChildren = DocumentRoute._addFileChildren(
   DocumentRouteChildren,
 )
 
+interface WorkItemsIdRouteChildren {
+  WorkItemsIdEditRoute: typeof WorkItemsIdEditRoute
+}
+
+const WorkItemsIdRouteChildren: WorkItemsIdRouteChildren = {
+  WorkItemsIdEditRoute: WorkItemsIdEditRoute,
+}
+
+const WorkItemsIdRouteWithChildren = WorkItemsIdRoute._addFileChildren(
+  WorkItemsIdRouteChildren,
+)
+
+interface WorkItemsRouteChildren {
+  WorkItemsIdRoute: typeof WorkItemsIdRouteWithChildren
+  WorkItemsBacklogRoute: typeof WorkItemsBacklogRoute
+  WorkItemsNewEditRoute: typeof WorkItemsNewEditRoute
+}
+
+const WorkItemsRouteChildren: WorkItemsRouteChildren = {
+  WorkItemsIdRoute: WorkItemsIdRouteWithChildren,
+  WorkItemsBacklogRoute: WorkItemsBacklogRoute,
+  WorkItemsNewEditRoute: WorkItemsNewEditRoute,
+}
+
+const WorkItemsRouteWithChildren = WorkItemsRoute._addFileChildren(
+  WorkItemsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -265,7 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentRoute: DocumentRouteWithChildren,
   OverviewRoute: OverviewRoute,
   ProjectsManageRoute: ProjectsManageRoute,
-  TicketRoute: TicketRoute,
+  WorkItemsRoute: WorkItemsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -6,8 +6,8 @@ import { useNavigationStore } from '../../stores/navigation-store';
 import type { NavigationItemResponse } from '../../stores/navigation-store';
 import './dashboard.styles.scss';
 
-// Dummy ticket data for charts
-const dummyTickets = [
+// Dummy work item data for charts
+const dummyWorkItems = [
     { id: '1', status: 'Open', priority: 'High' },
     { id: '2', status: 'In Progress', priority: 'Medium' },
     { id: '3', status: 'Open', priority: 'Low' },
@@ -34,26 +34,26 @@ export default function Dashboard() {
         fetchProjects,
     } = useNavigationStore();
 
-    // Calculate ticket statistics from dummy data
-    const ticketCount = dummyTickets.length;
+    // Calculate work item statistics from dummy data
+    const workItemCount = dummyWorkItems.length;
     
-    const ticketsByStatus = dummyTickets.reduce((acc, ticket) => {
-        acc[ticket.status] = (acc[ticket.status] || 0) + 1;
+    const workItemsByStatus = dummyWorkItems.reduce((acc, workItem) => {
+        acc[workItem.status] = (acc[workItem.status] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
 
-    const ticketsByPriority = dummyTickets.reduce((acc, ticket) => {
-        acc[ticket.priority] = (acc[ticket.priority] || 0) + 1;
+    const workItemsByPriority = dummyWorkItems.reduce((acc, workItem) => {
+        acc[workItem.priority] = (acc[workItem.priority] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
 
     // Prepare data for pie charts
-    const statusChartData = Object.entries(ticketsByStatus).map(([name, value]) => ({
+    const statusChartData = Object.entries(workItemsByStatus).map(([name, value]) => ({
         name,
         value,
     }));
 
-    const priorityChartData = Object.entries(ticketsByPriority).map(([name, value]) => ({
+    const priorityChartData = Object.entries(workItemsByPriority).map(([name, value]) => ({
         name,
         value,
     }));
@@ -90,12 +90,12 @@ export default function Dashboard() {
         return countDocuments(documentsSection.items);
     }, [navigation]);
 
-    const handleCreateTicket = () => {
-        navigate({ to: '/backlog' });
+    const handleCreateWorkItem = () => {
+        navigate({ to: '/work-items/new/edit' });
     };
 
     const handleCreateDocument = () => {
-        navigate({ to: '/document' });
+        navigate({ to: '/document/new/edit' });
     };
 
     return (
@@ -107,13 +107,13 @@ export default function Dashboard() {
             <div className="dashboard-content">
                 {/* CTA Blocks */}
                 <div className="dashboard-cta-section">
-                    <button className="dashboard-cta-block" onClick={handleCreateTicket}>
+                    <button className="dashboard-cta-block" onClick={handleCreateWorkItem}>
                         <div className="dashboard-cta-icon">
                             <FaPlus />
                         </div>
                         <div className="dashboard-cta-content">
-                            <h3 className="dashboard-cta-title">Create New Ticket</h3>
-                            <p className="dashboard-cta-description">Add a new ticket to track work</p>
+                            <h3 className="dashboard-cta-title">Create New Work Item</h3>
+                            <p className="dashboard-cta-description">Add a new work item to track work</p>
                         </div>
                         <FaTicketAlt className="dashboard-cta-arrow" />
                     </button>
@@ -149,8 +149,8 @@ export default function Dashboard() {
                             <FaTicketAlt />
                         </div>
                         <div className="dashboard-stat-content">
-                            <div className="dashboard-stat-value">{ticketCount}</div>
-                            <div className="dashboard-stat-label">Active Tickets</div>
+                            <div className="dashboard-stat-value">{workItemCount}</div>
+                            <div className="dashboard-stat-label">Active Work Items</div>
                         </div>
                     </div>
                 </div>
@@ -158,7 +158,7 @@ export default function Dashboard() {
                 {/* Charts Section */}
                 <div className="dashboard-charts-section">
                     <div className="dashboard-chart-card">
-                        <h3 className="dashboard-chart-title">Tickets by Status</h3>
+                        <h3 className="dashboard-chart-title">Work Items by Status</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
                                 <Pie
@@ -182,7 +182,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="dashboard-chart-card">
-                        <h3 className="dashboard-chart-title">Tickets by Priority</h3>
+                        <h3 className="dashboard-chart-title">Work Items by Priority</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
                                 <Pie

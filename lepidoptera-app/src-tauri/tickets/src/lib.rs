@@ -1,6 +1,6 @@
 pub mod entities;
 mod repository;
-mod tickets_sqlite_repository;
-pub mod tickets_port;
-pub mod tickets_manager;
+mod work_items_sqlite_repository;
+pub mod work_items_port;
+pub mod work_items_manager;
 

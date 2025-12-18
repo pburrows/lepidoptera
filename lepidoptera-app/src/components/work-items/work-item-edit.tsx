@@ -13,7 +13,7 @@ import {
 import { FaXmark } from "react-icons/fa6";
 import {RichTextEditor} from "../editor";
 
-export interface TicketData {
+export interface WorkItemData {
     title: string;
     description: string;
     type: string;
@@ -25,28 +25,28 @@ export interface TicketData {
     dueDate: string;
 }
 
-interface TicketEditProps {
-    ticket?: TicketData;
-    onSave?: (ticket: TicketData) => void;
+interface WorkItemEditProps {
+    workItem?: WorkItemData;
+    onSave?: (workItem: WorkItemData) => void;
     onCancel?: () => void;
 }
 
-export default function TicketEdit({ ticket, onSave, onCancel }: TicketEditProps) {
-    const [formData, setFormData] = useState<TicketData>({
-        title: ticket?.title || "",
-        description: ticket?.description || "",
-        type: ticket?.type || "task",
-        priority: ticket?.priority || "medium",
-        status: ticket?.status || "open",
-        assignee: ticket?.assignee || "",
-        project: ticket?.project || "",
-        labels: ticket?.labels || [],
-        dueDate: ticket?.dueDate || "",
+export default function WorkItemEdit({ workItem, onSave, onCancel }: WorkItemEditProps) {
+    const [formData, setFormData] = useState<WorkItemData>({
+        title: workItem?.title || "",
+        description: workItem?.description || "",
+        type: workItem?.type || "task",
+        priority: workItem?.priority || "medium",
+        status: workItem?.status || "open",
+        assignee: workItem?.assignee || "",
+        project: workItem?.project || "",
+        labels: workItem?.labels || [],
+        dueDate: workItem?.dueDate || "",
     });
 
     const [newLabel, setNewLabel] = useState("");
 
-    const handleFieldChange = (field: keyof TicketData, value: string) => {
+    const handleFieldChange = (field: keyof WorkItemData, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -83,7 +83,7 @@ export default function TicketEdit({ ticket, onSave, onCancel }: TicketEditProps
                         </Text>
                         <TextField.Root
                             id="title"
-                            placeholder="Enter ticket title..."
+                            placeholder="Enter work item title..."
                             value={formData.title}
                             onChange={(e) => handleFieldChange("title", e.target.value)}
                             required
@@ -106,14 +106,14 @@ export default function TicketEdit({ ticket, onSave, onCancel }: TicketEditProps
                                     id={"description"}
                                     value={formData.description}
                                     onChange={(html) => handleFieldChange("description", html)}
-                                    placeholder="Enter ticket description..."
+                                    placeholder="Enter work item description..."
                                     minHeight="150px"
                                     showToolbar={true}
                                     showCount={false}
                                 />
                                 {/*<TextArea*/}
                                 {/*    id="description"*/}
-                                {/*    placeholder="Enter ticket description..."*/}
+                                {/*    placeholder="Enter work item description..."*/}
                                 {/*    value={formData.description}*/}
                                 {/*    onChange={(e) => handleFieldChange("description", e.target.value)}*/}
                                 {/*    rows={10}*/}
@@ -303,7 +303,7 @@ export default function TicketEdit({ ticket, onSave, onCancel }: TicketEditProps
                             </Button>
                         )}
                         <Button type="submit" size="3">
-                            {ticket ? "Update Ticket" : "Create Ticket"}
+                            {workItem ? "Update Work Item" : "Create Work Item"}
                         </Button>
                     </Flex>
                 </Flex>
@@ -311,3 +311,4 @@ export default function TicketEdit({ ticket, onSave, onCancel }: TicketEditProps
         </Box>
     );
 }
+

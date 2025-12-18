@@ -9,6 +9,7 @@ mod m0008_create_attachments;
 mod m0009_add_document_indexes;
 mod m0010_add_projects_is_active;
 mod m0011_add_document_version_published_fields;
+mod m0012_rename_tickets_to_work_items;
 
 use rusqlite_migration::{Migrations};
 
@@ -25,6 +26,7 @@ pub fn get_migrations() -> Migrations<'static> {
         m0009_add_document_indexes::migration(),
         m0010_add_projects_is_active::migration(),
         m0011_add_document_version_published_fields::migration(),
+        m0012_rename_tickets_to_work_items::migration(),
       ])
 }
 
