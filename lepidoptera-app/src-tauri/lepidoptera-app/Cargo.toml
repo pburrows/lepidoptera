@@ -20,6 +20,6 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 db = { path = "../db" }
 shared = { path = "../shared" }
-work_items = { path = "../tickets" }
+work_items = { path = "../work_items" }
 projects = {path = "../projects"}
 documents = {path = "../documents" }

@@ -82,7 +82,7 @@ Stores all change events for synchronization and audit purposes.
 CREATE TABLE IF NOT EXISTS event_streams (
     id TEXT PRIMARY KEY,                    -- ULID, unique event identifier
     machine_id TEXT NOT NULL,               -- ULID, identifies the source machine
-    entity_type TEXT NOT NULL,              -- 'tickets', 'projects', 'documents', 'attachments', etc.
+    entity_type TEXT NOT NULL,              -- 'work_items', 'projects', 'documents', 'attachments', etc.
     entity_id TEXT NOT NULL,                -- ID of the affected entity
     operation TEXT NOT NULL,                -- 'CREATE', 'UPDATE', 'DELETE'
     payload TEXT NOT NULL,                  -- JSON representation of the entity state at time of change
@@ -163,7 +163,7 @@ All write operations MUST use database transactions to ensure atomicity:
 connection.transaction(|tx| {
     // 1. Write to main table
     tx.execute(
-        "INSERT INTO tickets (id, title, description, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO work_items (id, title, description, created_at) VALUES (?, ?, ?, ?)",
         params![ticket_id, title, description, created_at]
     )?;
     
@@ -174,7 +174,7 @@ connection.transaction(|tx| {
         params![
             event_id,
             machine_id,
-            "tickets",
+            "work_items",
             ticket_id,
             "CREATE",
             &serde_json::to_string(&ticket)?,

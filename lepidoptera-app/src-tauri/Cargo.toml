@@ -3,7 +3,7 @@ members = [
     "lepidoptera-app",
     "db",
     "shared",
-    "tickets",
+    "work_items",
     "projects",
     "people", "documents", "attachment_store",
 ]
