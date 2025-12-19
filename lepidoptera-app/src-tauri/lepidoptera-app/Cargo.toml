@@ -23,3 +23,4 @@ shared = { path = "../shared" }
 work_items = { path = "../work_items" }
 projects = {path = "../projects"}
 documents = {path = "../documents" }
+sync = { path = "../sync" }

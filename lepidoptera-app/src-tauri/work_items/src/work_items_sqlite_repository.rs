@@ -21,7 +21,7 @@ impl WorkItemsRepository for SqliteWorkItemsRepository {
         self.inner.find_by_id(id)
     }
 
-    fn create(&self, work_item: WorkItem) -> anyhow::Result<(WorkItem)> {
+    fn create(&self, work_item: WorkItem) -> anyhow::Result<WorkItem> {
        self.inner.create(work_item) 
     }
 }

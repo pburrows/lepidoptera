@@ -44,22 +44,23 @@ impl Entity for Project {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
-            (self.id.clone().unwrap_or_default()),
-            (self.created_at.clone()),
-            (self.updated_at.clone()),
-            (self.name.clone()),
-            (self.description.clone()),
-            (self.is_active),
+            self.id.clone().unwrap_or_default(),
+            self.created_at.clone(),
+            self.updated_at.clone(),
+            self.name.clone(),
+            self.description.clone(),
+            self.is_active,
         ]
     }
 
     fn update_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
-            (self.name.clone()),
-            (self.description.clone()),
-            (self.is_active),
-            (self.updated_at.clone()),
+            self.name.clone(),
+            self.description.clone(),
+            self.is_active,
+            self.updated_at.clone(),
         ]
     }
 
 }
+

@@ -71,7 +71,7 @@ impl<E: Entity> GenericRepository<E> {
         Ok(results.pop())
     }
 
-    pub fn create(&self, mut entity: E) -> Result<(E)> {
+    pub fn create(&self, entity: E) -> Result<E> {
         let conn = self
             .connection
             .lock()
@@ -94,7 +94,7 @@ impl<E: Entity> GenericRepository<E> {
         )
         .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
 
-        Ok((entity))
+        Ok(entity)
     }
 
     pub fn update(&self, entity: &E) -> Result<usize> {

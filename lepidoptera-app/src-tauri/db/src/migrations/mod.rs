@@ -10,6 +10,13 @@ mod m0009_add_document_indexes;
 mod m0010_add_projects_is_active;
 mod m0011_add_document_version_published_fields;
 mod m0012_rename_tickets_to_work_items;
+mod m0013_create_work_item_types;
+mod m0014_add_work_items_type_id;
+mod m0015_create_work_item_field_values;
+mod m0016_create_project_settings;
+mod m0017_create_work_item_number_ranges;
+mod m0018_add_work_items_sequential_number;
+mod m0019_create_local_machine;
 
 use rusqlite_migration::{Migrations};
 
@@ -27,6 +34,13 @@ pub fn get_migrations() -> Migrations<'static> {
         m0010_add_projects_is_active::migration(),
         m0011_add_document_version_published_fields::migration(),
         m0012_rename_tickets_to_work_items::migration(),
+        m0013_create_work_item_types::migration(),
+        m0014_add_work_items_type_id::migration(),
+        m0015_create_work_item_field_values::migration(),
+        m0016_create_project_settings::migration(),
+        m0017_create_work_item_number_ranges::migration(),
+        m0018_add_work_items_sequential_number::migration(),
+        m0019_create_local_machine::migration(),
       ])
 }
 

@@ -12,12 +12,15 @@ use documents::docuent_ports::DocumentsManager;
 use documents::documents_manager::manager::SqliteDocumentsManager;
 use projects::project_ports::ProjectsManager;
 use projects::projects_manager::manager::SqliteProjectsManager;
+use sync::sync_ports::SyncManager;
+use sync::sync_manager::manager::SqliteSyncManager;
 use crate::settings::settings_store::SettingsStore;
 
 pub struct AppContext {
     pub work_items: Arc<dyn WorkItemsManager>,
     pub projects: Arc<dyn ProjectsManager>,
     pub documents: Arc<dyn DocumentsManager>,
+    pub sync: Arc<dyn SyncManager>,
     pub local_settings: LocalSettingsStore,
 }
 
@@ -58,11 +61,13 @@ impl AppContextBuilder {
         let work_items_manager = Arc::new(SqliteWorkItemManager::new(shared_connection.clone()));
         let projects_manager = Arc::new(SqliteProjectsManager::new(shared_connection.clone()));
         let documents_manager = Arc::new(SqliteDocumentsManager::new(shared_connection.clone()));
+        let sync_manager = Arc::new(SqliteSyncManager::new(shared_connection.clone()));
 
         Ok(AppContext {
             work_items: work_items_manager,
             projects: projects_manager,
             documents: documents_manager,
+            sync: sync_manager,
             local_settings: self.settings,
         })
     }

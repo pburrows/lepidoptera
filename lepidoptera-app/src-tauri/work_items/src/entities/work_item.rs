@@ -15,6 +15,8 @@ pub struct WorkItem {
     pub created_by: String,
     pub assigned_to: Option<String>,
     pub project_id: String,
+    pub type_id: String, // Foreign key to WorkItemType
+    pub sequential_number: Option<i64>, // Sequential number for display (e.g., 1000, 1001, etc.)
 }
 
 impl Entity for WorkItem {
@@ -33,6 +35,8 @@ impl Entity for WorkItem {
             "created_by",
             "assigned_to",
             "project_id",
+            "type_id",
+            "sequential_number",
         ]
     }
 
@@ -48,6 +52,8 @@ impl Entity for WorkItem {
             created_by: row.get(7)?,
             assigned_to: row.get(8)?,
             project_id: row.get(9)?,
+            type_id: row.get(10)?,
+            sequential_number: row.get(11)?,
         })
     }
 
@@ -70,6 +76,8 @@ impl Entity for WorkItem {
             self.created_by.clone(),
             self.assigned_to.clone(),
             self.project_id.clone(),
+            self.type_id.clone(),
+            self.sequential_number,
         ]
     }
 
@@ -84,6 +92,8 @@ impl Entity for WorkItem {
             self.created_by.clone(),
             self.assigned_to.clone(),
             self.project_id.clone(),
+            self.type_id.clone(),
+            self.sequential_number,
         ]
     }
 

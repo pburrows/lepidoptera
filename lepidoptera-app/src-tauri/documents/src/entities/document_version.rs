@@ -70,16 +70,16 @@ impl Entity for DocumentVersion {
             serde_json::to_string(&self.attachment_ids).unwrap_or_else(|_| "[]".to_string());
 
         to_sql_vec![
-            (self.document_id.clone()),
-            (self.version),
-            (self.created_at.clone()),
-            (self.created_by.clone()),
-            (self.title.clone()),
-            (self.body.clone()),
-            (self.summary.clone()),
-            (attachment_ids_json),
-            (self.published_at.clone()),
-            (self.published_by.clone()),
+            self.document_id.clone(),
+            self.version,
+            self.created_at.clone(),
+            self.created_by.clone(),
+            self.title.clone(),
+            self.body.clone(),
+            self.summary.clone(),
+            attachment_ids_json,
+            self.published_at.clone(),
+            self.published_by.clone(),
         ]
     }
 
@@ -88,16 +88,16 @@ impl Entity for DocumentVersion {
             serde_json::to_string(&self.attachment_ids).unwrap_or_else(|_| "[]".to_string());
 
         to_sql_vec![
-            (self.document_id.clone()),
-            (self.version),
-            (self.created_at.clone()),
-            (self.created_by.clone()),
-            (self.title.clone()),
-            (self.body.clone()),
-            (self.summary.clone()),
-            (attachment_ids_json),
-            (self.published_at.clone()),
-            (self.published_by.clone()),
+            self.document_id.clone(),
+            self.version,
+            self.created_at.clone(),
+            self.created_by.clone(),
+            self.title.clone(),
+            self.body.clone(),
+            self.summary.clone(),
+            attachment_ids_json,
+            self.published_at.clone(),
+            self.published_by.clone(),
         ]
     }
 }

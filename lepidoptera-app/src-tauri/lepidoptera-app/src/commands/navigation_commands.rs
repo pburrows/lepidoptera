@@ -123,7 +123,11 @@ fn build_document_tree(documents: &[NavigationDocument]) -> Vec<NavigationItem> 
         doc: &NavigationDocument,
         children_map: &HashMap<Option<String>, Vec<&NavigationDocument>>,
     ) -> NavigationItem {
-        let doc_id = doc.id.as_ref().unwrap();
+        // Use id if available, otherwise fall back to slug (which should always be present)
+        let doc_id = doc.id.as_ref()
+            .map(|id| id.clone())
+            .unwrap_or_else(|| format!("doc-{}", doc.slug));
+        
         let children: Option<Vec<NavigationItem>> = children_map
             .get(&doc.id.clone())
             .map(|child_docs| {
@@ -138,7 +142,7 @@ fn build_document_tree(documents: &[NavigationDocument]) -> Vec<NavigationItem> 
             .filter(|items| !items.is_empty());
 
         NavigationItem {
-            id: doc_id.clone(),
+            id: doc_id,
             label: doc.title.clone(),
             icon: None,
             children,

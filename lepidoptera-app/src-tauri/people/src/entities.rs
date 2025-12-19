@@ -41,17 +41,17 @@ impl Entity for Person {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
-            (self.display_name.clone()),
-            (self.is_active),
-            (self.created_at.clone()),
+            self.display_name.clone(),
+            self.is_active,
+            self.created_at.clone(),
         ]
     }
 
     fn update_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
-            (self.display_name.clone()),
-            (self.is_active),
-            (self.updated_at.clone()),
+            self.display_name.clone(),
+            self.is_active,
+            self.updated_at.clone(),
         ]
     }
 

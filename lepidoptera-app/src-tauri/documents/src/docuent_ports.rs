@@ -1,4 +1,3 @@
-use crate::entities::Document;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 

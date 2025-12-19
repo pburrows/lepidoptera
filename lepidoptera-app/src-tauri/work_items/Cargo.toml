@@ -6,6 +6,11 @@ authors.workspace = true
 
 [dependencies]
 serde = { workspace = true }
+serde_json = { workspace = true }
 anyhow = { workspace = true }
 rusqlite = { workspace = true }
+chrono = { workspace = true }
+ulid = { workspace = true }
+regex = "1"
+thiserror = "1"
 db = { path = "../db" }

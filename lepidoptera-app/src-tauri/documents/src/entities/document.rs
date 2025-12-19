@@ -59,21 +59,21 @@ impl Entity for Document {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
-            (self.project_id.clone()),
-            (self.created_at.clone()),
-            (self.created_by.clone()),
-            (self.slug.clone()),
-            (self.is_active),
+            self.project_id.clone(),
+            self.created_at.clone(),
+            self.created_by.clone(),
+            self.slug.clone(),
+            self.is_active,
         ]
     }
 
     fn update_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
-            (self.project_id.clone()),
-            (self.updated_at.clone()),
-            (self.updated_by.clone()),
-            (self.slug.clone()),
-            (self.is_active),
+            self.project_id.clone(),
+            self.updated_at.clone(),
+            self.updated_by.clone(),
+            self.slug.clone(),
+            self.is_active,
         ]
     }
 
