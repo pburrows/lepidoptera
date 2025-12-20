@@ -32,7 +32,7 @@ pub fn get_all_projects(
             settings_repository,
             project_id,
             "SEQUENCE_PREFIX".to_string(),
-            Value::String("MAIN".to_string()),
+            Value::String("M".to_string()),
             "system".to_string(),
         )?;
         

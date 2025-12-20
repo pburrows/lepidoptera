@@ -25,6 +25,7 @@ impl Entity for LocalMachine {
 
     fn columns() -> &'static [&'static str] {
         &[
+            "id",
             "os_machine_id",
             "user_id",
             "name",
@@ -64,6 +65,7 @@ impl Entity for LocalMachine {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(),
             self.os_machine_id.clone(),
             self.user_id.clone(),
             self.name.clone(),

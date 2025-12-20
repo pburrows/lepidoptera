@@ -62,6 +62,8 @@ impl AppContextBuilder {
         let projects_manager = Arc::new(SqliteProjectsManager::new(shared_connection.clone()));
         let documents_manager = Arc::new(SqliteDocumentsManager::new(shared_connection.clone()));
         let sync_manager = Arc::new(SqliteSyncManager::new(shared_connection.clone()));
+        let local_machine = sync_manager.get_local_machine()?;
+        // println!("Local machine: {:?}", local_machine);
 
         Ok(AppContext {
             work_items: work_items_manager,

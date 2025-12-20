@@ -19,8 +19,8 @@ pub struct WorkItemModel {
     pub assigned_to: Option<String>,
     pub project_id: String,
     pub type_id: String,
-    /// Sequential number for display (e.g., 1000, 1001, etc.)
-    pub sequential_number: Option<i64>,
+    /// Sequential number for display (e.g., M-0003, M-1045, etc.)
+    pub sequential_number: Option<String>,
     /// Custom field values for this work item
     pub field_values: Vec<WorkItemFieldValueModel>,
 }
@@ -59,7 +59,7 @@ impl WorkItemModel {
             assigned_to: self.assigned_to.clone(),
             project_id: self.project_id.clone(),
             type_id: self.type_id.clone(),
-            sequential_number: self.sequential_number,
+            sequential_number: self.sequential_number.clone(),
         }
     }
 

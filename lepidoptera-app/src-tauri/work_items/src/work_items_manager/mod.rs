@@ -8,5 +8,9 @@ mod update_work_item_type;
 mod mark_work_item_type_inactive;
 mod validate_field_value;
 mod number_range_manager;
+mod apply_template;
+mod create_work_item_relationship;
+mod get_work_item_relationships;
+mod delete_work_item_relationship;
 pub mod manager;
 

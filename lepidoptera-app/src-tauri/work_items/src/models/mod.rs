@@ -9,12 +9,14 @@ pub mod work_item_type;
 pub mod work_item;
 pub mod work_item_field_value;
 pub mod work_item_query;
+pub mod work_item_relationship;
 
-pub use work_item_type::WorkItemTypeModel;
+pub use work_item_type::{WorkItemTypeModel, WorkItemTypeTemplate};
 pub use work_item::WorkItemModel;
 pub use work_item_field_value::{WorkItemFieldValueModel, FieldDefinition};
 pub use work_item_query::{
     WorkItemQuery, WorkItemListRequest, WorkItemListItem, WorkItemListResponse,
     FieldValueQuery, SortField, SortDirection,
 };
+pub use work_item_relationship::{WorkItemRelationshipModel, RelationshipType};
 

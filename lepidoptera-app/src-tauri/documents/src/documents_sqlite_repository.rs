@@ -32,7 +32,7 @@ impl SqliteDocumentsRepository {
 
 impl DocumentsRepository for SqliteDocumentsRepository {
     fn find_by_id(&self, id: &str) -> anyhow::Result<Option<Document>> {
-        self.inner.find_by_id(id)
+        self.inner.find_by_id(id, None)
     }
 
     fn find_all(&self) -> anyhow::Result<Vec<Document>> {
@@ -50,7 +50,7 @@ impl DocumentsRepository for SqliteDocumentsRepository {
     }
 
     fn create(&self, document: Document) -> anyhow::Result<Document> {
-        self.inner.create(document).map(|doc| doc)
+        self.inner.create(document, None).map(|doc| doc)
     }
 
     fn find_by_project_id(&self, project_id: &str, active_only: bool) -> anyhow::Result<Vec<Document>> {

@@ -120,6 +120,15 @@ fn build_where_clause(
         where_clauses.push(format!("title LIKE {}", add_param(params, param_index, Box::new(format!("%{}%", title_contains)))));
     }
 
+    if let Some(sequence_numbers) = &query.sequence_numbers {
+        if !sequence_numbers.is_empty() {
+            let placeholders: Vec<String> = sequence_numbers.iter()
+                .map(|s| add_param(params, param_index, Box::new(s.clone())))
+                .collect();
+            where_clauses.push(format!("sequential_number IN ({})", placeholders.join(", ")));
+        }
+    }
+
     // Handle field value queries
     if let Some(field_value_queries) = &query.field_value_queries {
         if !field_value_queries.is_empty() {
@@ -226,7 +235,7 @@ fn query_work_items(
     params: &[Box<dyn ToSql>],
 ) -> Result<Vec<WorkItem>> {
     let sql = format!(
-        "SELECT work_items.id, work_items.title, work_items.description, work_items.status, work_items.created_at, work_items.updated_at, work_items.priority, work_items.created_by, work_items.assigned_to, work_items.project_id, work_items.type_id FROM work_items {} {} {} {}",
+        "SELECT work_items.id, work_items.title, work_items.description, work_items.status, work_items.created_at, work_items.updated_at, work_items.priority, work_items.created_by, work_items.assigned_to, work_items.project_id, work_items.type_id, work_items.sequential_number FROM work_items {} {} {} {}",
         join_clause, where_clause, order_by, limit_clause
     );
 

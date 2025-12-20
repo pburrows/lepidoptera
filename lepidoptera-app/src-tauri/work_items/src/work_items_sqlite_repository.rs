@@ -18,11 +18,11 @@ impl SqliteWorkItemsRepository {
 
 impl WorkItemsRepository for SqliteWorkItemsRepository {
     fn find_by_id(&self, id: &str) -> anyhow::Result<Option<WorkItem>> {
-        self.inner.find_by_id(id)
+        self.inner.find_by_id(id, None)
     }
 
     fn create(&self, work_item: WorkItem) -> anyhow::Result<WorkItem> {
-       self.inner.create(work_item) 
+       self.inner.create(work_item, None) 
     }
 }
 

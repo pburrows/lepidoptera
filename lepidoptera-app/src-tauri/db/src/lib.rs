@@ -14,6 +14,7 @@ pub struct Connection {
 impl Connection {
     pub fn new(path: &str) -> Result<Self> {
         let mut conn = rusqlite::Connection::open(path)?;
+        println!("Connected to database: {}", path);
         migrations::run_migrations(&mut conn)?;
         Ok(Self { inner: conn })
     }

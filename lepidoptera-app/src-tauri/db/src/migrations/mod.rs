@@ -17,6 +17,8 @@ mod m0016_create_project_settings;
 mod m0017_create_work_item_number_ranges;
 mod m0018_add_work_items_sequential_number;
 mod m0019_create_local_machine;
+mod m0020_change_sequential_number_to_text;
+mod m0021_create_work_item_relationships;
 
 use rusqlite_migration::{Migrations};
 
@@ -41,6 +43,8 @@ pub fn get_migrations() -> Migrations<'static> {
         m0017_create_work_item_number_ranges::migration(),
         m0018_add_work_items_sequential_number::migration(),
         m0019_create_local_machine::migration(),
+        m0020_change_sequential_number_to_text::migration(),
+        m0021_create_work_item_relationships::migration(),
       ])
 }
 

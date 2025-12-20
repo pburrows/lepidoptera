@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use crate::schemas::{
     AllowedChildrenTypeIds,
     AllowedStatuses,
@@ -73,5 +74,20 @@ impl WorkItemTypeModel {
                 .context("Failed to serialize work_item_fields")?,
         })
     }
+}
+
+/// Template structure matching the TypeScript template format
+/// Used for creating work item types from project templates
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkItemTypeTemplate {
+    pub name: String,
+    pub display_name: String,
+    pub allowed_children_type_names: Vec<String>,
+    pub allowed_statuses: Vec<Value>,
+    pub allowed_priorities: Vec<Value>,
+    pub assignment_field_definitions: Vec<Value>,
+    pub work_item_details: Value,
+    pub work_item_fields: Vec<Value>,
 }
 

@@ -18,6 +18,8 @@ tauri-plugin-window-state = "2"
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
+chrono = {workspace = true}
+ulid = {workspace = true}
 db = { path = "../db" }
 shared = { path = "../shared" }
 work_items = { path = "../work_items" }

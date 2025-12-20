@@ -16,7 +16,7 @@ pub struct WorkItem {
     pub assigned_to: Option<String>,
     pub project_id: String,
     pub type_id: String, // Foreign key to WorkItemType
-    pub sequential_number: Option<i64>, // Sequential number for display (e.g., 1000, 1001, etc.)
+    pub sequential_number: Option<String>, // Sequential number for display (e.g., M-0003, M-1045, etc.)
 }
 
 impl Entity for WorkItem {
@@ -77,7 +77,7 @@ impl Entity for WorkItem {
             self.assigned_to.clone(),
             self.project_id.clone(),
             self.type_id.clone(),
-            self.sequential_number,
+            self.sequential_number.clone(),
         ]
     }
 
@@ -93,7 +93,7 @@ impl Entity for WorkItem {
             self.assigned_to.clone(),
             self.project_id.clone(),
             self.type_id.clone(),
-            self.sequential_number,
+            self.sequential_number.clone(),
         ]
     }
 

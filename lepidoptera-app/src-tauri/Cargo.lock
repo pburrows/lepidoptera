@@ -1898,6 +1898,7 @@ name = "lepidoptera-app"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "db",
  "documents",
  "projects",
@@ -1909,6 +1910,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "tauri-plugin-window-state",
+ "ulid",
  "work_items",
 ]
 

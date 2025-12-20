@@ -32,7 +32,7 @@ impl LocalMachineRepository for LocalMachineSqliteRepository {
     }
 
     fn create(&self, local_machine: LocalMachine) -> Result<LocalMachine> {
-        self.inner.create(local_machine)
+        self.inner.create(local_machine, None)
     }
 }
 

@@ -62,6 +62,8 @@ pub struct WorkItemQuery {
     pub created_by: Option<String>,
     /// Filter by title containing text (LIKE)
     pub title_contains: Option<String>,
+    /// Filter by sequential numbers (IN clause) - can contain one or more formatted sequence numbers (e.g., M-0003, M-1045)
+    pub sequence_numbers: Option<Vec<String>>,
     /// Filter by field values
     pub field_value_queries: Option<Vec<FieldValueQuery>>,
     /// Pagination: page number (1-indexed)

@@ -35,6 +35,7 @@ impl Entity for WorkItemType {
 
     fn columns() -> &'static [&'static str] {
         &[
+            "id",
             "project_id",
             "created_at",
             "updated_at",
@@ -74,8 +75,10 @@ impl Entity for WorkItemType {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(),
             self.project_id.clone(),
             self.created_at.clone(),
+            self.updated_at.clone(),
             self.is_active,
             self.allowed_children_type_ids.clone(),
             self.allowed_statuses.clone(),

@@ -1,22 +1,29 @@
 use std::sync::{Arc, Mutex};
 use db::Connection;
-use crate::models::{WorkItemModel, WorkItemTypeModel, WorkItemListRequest, WorkItemListResponse};
+use crate::models::{WorkItemModel, WorkItemTypeModel, WorkItemListRequest, WorkItemListResponse, WorkItemRelationshipModel, RelationshipType};
 use crate::repository::WorkItemsRepository;
 use crate::work_items_manager::{
     create_work_item, get_work_item, list_work_items,
     get_work_item_types_by_project, get_work_item_type,
     create_work_item_type, update_work_item_type, mark_work_item_type_inactive,
+    apply_template,
+    create_work_item_relationship, get_work_item_relationships,
+    delete_work_item_relationship,
 };
+use crate::models::WorkItemTypeTemplate;
 use crate::work_items_port::WorkItemsManager;
 use crate::work_items_sqlite_repository::SqliteWorkItemsRepository;
 use crate::work_item_types_sqlite_repository::SqliteWorkItemTypesRepository;
 use crate::work_item_types_repository::WorkItemTypesRepository;
 use crate::work_item_number_ranges_repository::{WorkItemNumberRangesRepository, SqliteWorkItemNumberRangesRepository};
+use crate::work_item_relationships_repository::WorkItemRelationshipsRepository;
+use crate::work_item_relationships_sqlite_repository::SqliteWorkItemRelationshipsRepository;
 
 pub struct SqliteWorkItemManager {
     repository: Arc<dyn WorkItemsRepository>,
     work_item_types_repository: Arc<dyn WorkItemTypesRepository>,
     number_ranges_repository: Arc<dyn WorkItemNumberRangesRepository>,
+    relationships_repository: Arc<dyn WorkItemRelationshipsRepository>,
     connection: Arc<Mutex<Connection>>,
 }
 
@@ -28,10 +35,13 @@ impl SqliteWorkItemManager {
             Arc::new(SqliteWorkItemTypesRepository::new(connection.clone()));
         let number_ranges_repository: Arc<dyn WorkItemNumberRangesRepository> =
             Arc::new(SqliteWorkItemNumberRangesRepository::new(connection.clone()));
+        let relationships_repository: Arc<dyn WorkItemRelationshipsRepository> =
+            Arc::new(SqliteWorkItemRelationshipsRepository::new(connection.clone()));
         Self { 
             repository,
             work_item_types_repository,
             number_ranges_repository,
+            relationships_repository,
             connection,
         }
     }
@@ -87,6 +97,38 @@ impl WorkItemsManager for SqliteWorkItemManager {
 
     fn mark_work_item_type_inactive(&self, id: &str) -> anyhow::Result<()> {
         mark_work_item_type_inactive::mark_work_item_type_inactive(&self.work_item_types_repository, id)
+    }
+
+    fn apply_template(&self, project_id: String, work_item_types: Vec<WorkItemTypeTemplate>) -> anyhow::Result<Vec<WorkItemTypeModel>> {
+        apply_template::apply_template(&self.work_item_types_repository, project_id, work_item_types)
+    }
+
+    fn create_work_item_relationship(&self, relationship: WorkItemRelationshipModel, created_by: &str) -> anyhow::Result<WorkItemRelationshipModel> {
+        create_work_item_relationship::create_work_item_relationship(&self.relationships_repository, relationship, created_by)
+    }
+
+    fn get_work_item_relationships(&self, work_item_id: &str) -> anyhow::Result<Vec<WorkItemRelationshipModel>> {
+        get_work_item_relationships::get_work_item_relationships(&self.relationships_repository, work_item_id)
+    }
+
+    fn get_work_item_source_relationships(&self, work_item_id: &str) -> anyhow::Result<Vec<WorkItemRelationshipModel>> {
+        get_work_item_relationships::get_work_item_source_relationships(&self.relationships_repository, work_item_id)
+    }
+
+    fn get_work_item_target_relationships(&self, work_item_id: &str) -> anyhow::Result<Vec<WorkItemRelationshipModel>> {
+        get_work_item_relationships::get_work_item_target_relationships(&self.relationships_repository, work_item_id)
+    }
+
+    fn get_work_item_source_relationships_by_type(&self, work_item_id: &str, relationship_type: RelationshipType) -> anyhow::Result<Vec<WorkItemRelationshipModel>> {
+        get_work_item_relationships::get_work_item_source_relationships_by_type(&self.relationships_repository, work_item_id, relationship_type.as_str())
+    }
+
+    fn get_work_item_target_relationships_by_type(&self, work_item_id: &str, relationship_type: RelationshipType) -> anyhow::Result<Vec<WorkItemRelationshipModel>> {
+        get_work_item_relationships::get_work_item_target_relationships_by_type(&self.relationships_repository, work_item_id, relationship_type.as_str())
+    }
+
+    fn delete_work_item_relationship(&self, relationship_id: &str) -> anyhow::Result<()> {
+        delete_work_item_relationship::delete_work_item_relationship(&self.relationships_repository, relationship_id)
     }
 }
 

@@ -65,7 +65,7 @@ impl WorkItemNumberRangesRepository for SqliteWorkItemNumberRangesRepository {
     }
 
     fn create_range(&self, range: WorkItemNumberRange) -> Result<WorkItemNumberRange> {
-        Ok(self.inner.create(range)?)
+        Ok(self.inner.create(range, None)?)
     }
 
     fn update_current_number(&self, range_id: &str, current_number: i64) -> Result<()> {

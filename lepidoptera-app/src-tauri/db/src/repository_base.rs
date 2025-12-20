@@ -53,30 +53,37 @@ impl<E: Entity> GenericRepository<E> {
             .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))
     }
 
-    pub fn find_by_id(&self, id: &str) -> Result<Option<E>> {
-        let conn = self
-            .connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
+    pub fn find_by_id(&self, id: &str, conn: Option<&mut Connection>) -> Result<Option<E>> {
+        let sql = format!(
+            "SELECT * FROM {} WHERE {} = ?1",
+            E::table_name(),
+            E::primary_key()
+        );
 
-        let mut results = conn.query(
-            &format!(
-                "SELECT * FROM {} WHERE {} = ?1",
-                E::table_name(),
-                E::primary_key()
-            ),
-            &[&id],
-            |row| E::from_row(row),
-        )?;
+        let mut results = if let Some(conn_ref) = conn {
+            // Use provided connection
+            conn_ref.query(
+                &sql,
+                &[&id],
+                |row| E::from_row(row),
+            )?
+        } else {
+            // Acquire lock if no connection provided
+            let conn_guard = self
+                .connection
+                .lock()
+                .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
+            
+            conn_guard.query(
+                &sql,
+                &[&id],
+                |row| E::from_row(row),
+            )?
+        };
         Ok(results.pop())
     }
 
-    pub fn create(&self, entity: E) -> Result<E> {
-        let conn = self
-            .connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
-
+    pub fn create(&self, entity: E, conn: Option<&mut Connection>) -> Result<E> {
         let columns = E::columns();
         let placeholders: Vec<String> = (1..=columns.len()).map(|i| format!("?{}", i)).collect();
 
@@ -88,24 +95,35 @@ impl<E: Entity> GenericRepository<E> {
         );
 
         let values = entity.insert_values();
-        conn.execute(
-            &sql,
-            rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
-        )
-        .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
+        
+        if let Some(conn_ref) = conn {
+            // Use provided connection
+            conn_ref.execute(
+                &sql,
+                rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
+            )
+            .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
+        } else {
+            // Acquire lock if no connection provided
+            let mut conn_guard = self
+                .connection
+                .lock()
+                .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
+            
+            conn_guard.execute(
+                &sql,
+                rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
+            )
+            .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
+        }
 
         Ok(entity)
     }
 
-    pub fn update(&self, entity: &E) -> Result<usize> {
+    pub fn update(&self, entity: &E, conn: Option<&mut Connection>) -> Result<usize> {
         let id = entity
             .id()
             .ok_or_else(|| anyhow::anyhow!("Entity must have an ID to update"))?;
-
-        let conn = self
-            .connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
 
         let columns = E::columns();
         let set_clauses: Vec<String> = columns
@@ -125,27 +143,55 @@ impl<E: Entity> GenericRepository<E> {
         let mut values = entity.update_values();
         values.push(Box::new(id));
 
-        conn.execute(
-            &sql,
-            rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
-        )
-        .map_err(|e| anyhow::anyhow!("Failed to update entity: {}", e))
+        if let Some(conn_ref) = conn {
+            // Use provided connection
+            conn_ref.execute(
+                &sql,
+                rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
+            )
+            .map_err(|e| anyhow::anyhow!("Failed to update entity: {}", e))
+        } else {
+            // Acquire lock if no connection provided
+            let mut conn_guard = self
+                .connection
+                .lock()
+                .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
+            
+            conn_guard.execute(
+                &sql,
+                rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
+            )
+            .map_err(|e| anyhow::anyhow!("Failed to update entity: {}", e))
+        }
     }
-    pub fn delete(&self, id: &str) -> Result<usize> {
-        let conn = self
-            .connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+    pub fn delete(&self, id: &str, conn: Option<&mut Connection>) -> Result<usize> {
+        let sql = format!(
+            "DELETE FROM {} WHERE {} = ?1",
+            E::table_name(),
+            E::primary_key()
+        );
 
         let params = vec![Box::new(id.to_string()) as Box<dyn ToSql>];
-        conn.execute(
-            &format!(
-                "DELETE FROM {} WHERE {} = ?1",
-                E::table_name(),
-                E::primary_key()
-            ),
-            rusqlite::params_from_iter(params.iter().map(|v| v.as_ref())),
-        )
-        .map_err(|e| anyhow::anyhow!("Failed to delete entity: {}", e))
+
+        if let Some(conn_ref) = conn {
+            // Use provided connection
+            conn_ref.execute(
+                &sql,
+                rusqlite::params_from_iter(params.iter().map(|v| v.as_ref())),
+            )
+            .map_err(|e| anyhow::anyhow!("Failed to delete entity: {}", e))
+        } else {
+            // Acquire lock if no connection provided
+            let mut conn_guard = self
+                .connection
+                .lock()
+                .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+            
+            conn_guard.execute(
+                &sql,
+                rusqlite::params_from_iter(params.iter().map(|v| v.as_ref())),
+            )
+            .map_err(|e| anyhow::anyhow!("Failed to delete entity: {}", e))
+        }
     }
 }

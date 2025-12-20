@@ -20,7 +20,7 @@ impl SqliteWorkItemTypesRepository {
 
 impl WorkItemTypesRepository for SqliteWorkItemTypesRepository {
     fn find_by_id(&self, id: &str) -> anyhow::Result<Option<WorkItemType>> {
-        self.inner.find_by_id(id)
+        self.inner.find_by_id(id, None)
     }
 
     fn find_by_project_id(&self, project_id: &str) -> anyhow::Result<Vec<WorkItemType>> {
@@ -45,7 +45,7 @@ impl WorkItemTypesRepository for SqliteWorkItemTypesRepository {
     }
 
     fn create(&self, work_item_type: WorkItemType) -> anyhow::Result<WorkItemType> {
-        self.inner.create(work_item_type)
+        self.inner.create(work_item_type, None)
     }
 
     fn update(&self, work_item_type: WorkItemType) -> anyhow::Result<WorkItemType> {

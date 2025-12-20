@@ -75,11 +75,13 @@ pub fn create_work_item(
             number_ranges_repository.clone(),
             connection.clone(),
         );
-        let sequential_number = number_range_manager.get_next_number(
+        let sequential_number_raw = number_range_manager.get_next_number(
             &work_item.project_id,
             machine_id,
         )?;
-        work_item.sequential_number = Some(sequential_number);
+        // Format as <sequence_prefix>-<number> where number has at least four digits
+        let formatted_number = format!("{}-{:04}", sequence_prefix, sequential_number_raw);
+        work_item.sequential_number = Some(formatted_number);
     }
 
     // Convert model to entity
@@ -115,7 +117,7 @@ pub fn create_work_item(
         field_value_entity.is_active = true;
 
         // Create the field value entity
-        let created_field_value_entity = field_value_repository.create(field_value_entity)
+        let created_field_value_entity = field_value_repository.create(field_value_entity, None)
             .context("Failed to create work item field value")?;
         
         // Convert back to model (we'll need to add the field definition later if needed)

@@ -24,7 +24,7 @@ impl ProjectsSqliteRepository {
 
 impl ProjectsRepository for ProjectsSqliteRepository {
     fn find_by_id(&self, id: &str) -> Result<Option<Project>> {
-        self.inner.find_by_id(id)
+        self.inner.find_by_id(id, None)
     }
 
     fn find_all(&self) -> Result<Vec<Project>> {
@@ -37,6 +37,6 @@ impl ProjectsRepository for ProjectsSqliteRepository {
     }
 
     fn create(&self, project: Project) -> Result<Project> {
-       self.inner.create(project)
+       self.inner.create(project, None)
     }
 }
