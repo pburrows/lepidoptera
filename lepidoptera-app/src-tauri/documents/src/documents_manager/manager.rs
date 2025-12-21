@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::docuent_ports::DocumentsManager;
 use crate::documents_sqlite_repository::{DocumentsRepository, SqliteDocumentsRepository};
 use anyhow::Result;
@@ -10,9 +10,9 @@ pub struct SqliteDocumentsManager {
 }
 
 impl SqliteDocumentsManager {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         let repository: Arc<dyn DocumentsRepository> =
-            Arc::new(SqliteDocumentsRepository::new(connection));
+            Arc::new(SqliteDocumentsRepository::new(pool));
         Self { repository }
     }
 }

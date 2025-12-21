@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use db::repository_base::{Entity, GenericRepository};
 use crate::entities::LocalMachine;
 use anyhow::Result;
@@ -11,19 +11,23 @@ pub trait LocalMachineRepository: Send + Sync {
 
 pub struct LocalMachineSqliteRepository {
     inner: GenericRepository<LocalMachine>,
+    pool: Arc<ConnectionPool>,
 }
 
 impl LocalMachineSqliteRepository {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+   pub fn new(pool: Arc<ConnectionPool>) -> Self {
         Self {
-            inner: GenericRepository::new(connection),
+            inner: GenericRepository::new(pool.clone()),
+            pool,
         }
     }
 }
 
 impl LocalMachineRepository for LocalMachineSqliteRepository {
     fn find_first(&self) -> Result<Option<LocalMachine>> {
-        let results = self.inner.connection()?.query(
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
+        let results = conn.query(
             &format!("SELECT * FROM {} LIMIT 1", LocalMachine::table_name()),
             &[],
             |row| LocalMachine::from_row(row),

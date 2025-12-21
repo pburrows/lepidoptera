@@ -1,7 +1,8 @@
 use crate::Connection;
+use crate::connection_pool::{ConnectionPool, PooledConnection};
 use anyhow::Result;
 use rusqlite::{Row, ToSql};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::Arc;
 
 #[macro_export]
 macro_rules! to_sql_vec {
@@ -24,14 +25,14 @@ pub trait Entity: Send + Sync + Clone {
 }
 
 pub struct GenericRepository<E: Entity> {
-    connection: Arc<Mutex<Connection>>,
+    pool: Arc<ConnectionPool>,
     _phantom: std::marker::PhantomData<E>,
 }
 
 impl<E: Entity> GenericRepository<E> {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         Self {
-            connection,
+            pool,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -40,17 +41,12 @@ impl<E: Entity> GenericRepository<E> {
     where
         F: FnOnce(&mut Connection) -> Result<T>,
     {
-        let mut conn = self
-            .connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
-        f(&mut conn)
+        let mut pooled_conn = self.pool.get()?;
+        f(pooled_conn.get_mut())
     }
 
-    pub fn connection(&self) -> Result<MutexGuard<'_, Connection>> {
-        self.connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))
+    pub fn connection(&self) -> Result<PooledConnection> {
+        self.pool.get()
     }
 
     pub fn find_by_id(&self, id: &str, conn: Option<&mut Connection>) -> Result<Option<E>> {
@@ -68,13 +64,9 @@ impl<E: Entity> GenericRepository<E> {
                 |row| E::from_row(row),
             )?
         } else {
-            // Acquire lock if no connection provided
-            let conn_guard = self
-                .connection
-                .lock()
-                .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
-            
-            conn_guard.query(
+            // Get connection from pool if no connection provided
+            let pooled_conn = self.pool.get()?;
+            pooled_conn.get().query(
                 &sql,
                 &[&id],
                 |row| E::from_row(row),
@@ -104,13 +96,9 @@ impl<E: Entity> GenericRepository<E> {
             )
             .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
         } else {
-            // Acquire lock if no connection provided
-            let mut conn_guard = self
-                .connection
-                .lock()
-                .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
-            
-            conn_guard.execute(
+            // Get connection from pool if no connection provided
+            let mut pooled_conn = self.pool.get()?;
+            pooled_conn.get_mut().execute(
                 &sql,
                 rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
             )
@@ -151,13 +139,9 @@ impl<E: Entity> GenericRepository<E> {
             )
             .map_err(|e| anyhow::anyhow!("Failed to update entity: {}", e))
         } else {
-            // Acquire lock if no connection provided
-            let mut conn_guard = self
-                .connection
-                .lock()
-                .map_err(|e| anyhow::anyhow!("Failed to lock connection, {}", e))?;
-            
-            conn_guard.execute(
+            // Get connection from pool if no connection provided
+            let mut pooled_conn = self.pool.get()?;
+            pooled_conn.get_mut().execute(
                 &sql,
                 rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
             )
@@ -181,13 +165,9 @@ impl<E: Entity> GenericRepository<E> {
             )
             .map_err(|e| anyhow::anyhow!("Failed to delete entity: {}", e))
         } else {
-            // Acquire lock if no connection provided
-            let mut conn_guard = self
-                .connection
-                .lock()
-                .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
-            
-            conn_guard.execute(
+            // Get connection from pool if no connection provided
+            let mut pooled_conn = self.pool.get()?;
+            pooled_conn.get_mut().execute(
                 &sql,
                 rusqlite::params_from_iter(params.iter().map(|v| v.as_ref())),
             )

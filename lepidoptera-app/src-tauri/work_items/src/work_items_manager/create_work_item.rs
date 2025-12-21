@@ -10,12 +10,13 @@ use std::sync::{Arc, Mutex};
 use anyhow::{Result, Context};
 use ulid::Ulid;
 use chrono::Utc;
+use db::connection_pool::ConnectionPool;
 
 pub fn create_work_item(
     repository: &Arc<dyn WorkItemsRepository>,
     work_item_types_repository: &Arc<dyn WorkItemTypesRepository>,
     number_ranges_repository: &Arc<dyn WorkItemNumberRangesRepository>,
-    connection: &Arc<Mutex<Connection>>,
+    pool: &Arc<ConnectionPool>,
     mut work_item: WorkItemModel,
     sequence_prefix: &str,
     machine_id: &str,
@@ -73,7 +74,7 @@ pub fn create_work_item(
     if work_item.sequential_number.is_none() {
         let number_range_manager = NumberRangeManager::new(
             number_ranges_repository.clone(),
-            connection.clone(),
+            pool.clone(),
         );
         let sequential_number_raw = number_range_manager.get_next_number(
             &work_item.project_id,
@@ -95,7 +96,7 @@ pub fn create_work_item(
         .ok_or_else(|| anyhow::anyhow!("Work item was created but has no ID"))?;
 
     // Create field values
-    let field_value_repository = GenericRepository::<WorkItemFieldValue>::new(connection.clone());
+    let field_value_repository = GenericRepository::<WorkItemFieldValue>::new(pool.clone());
     let mut created_field_values = Vec::new();
 
     for field_value_model in &work_item.field_values {

@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::{Connection, ToSql};
+use std::sync::Arc;
+use db::{ToSql, connection_pool::ConnectionPool, Connection};
 use crate::models::{
     WorkItemListRequest, WorkItemListResponse, WorkItemListItem, WorkItemQuery,
     WorkItemTypeModel, WorkItemFieldValueModel, FieldDefinition, SortField, SortDirection,
@@ -15,11 +15,11 @@ use std::collections::{HashMap, HashSet};
 pub fn list_work_items(
     repository: &Arc<dyn WorkItemsRepository>,
     work_item_types_repository: &Arc<dyn WorkItemTypesRepository>,
-    connection: &Arc<Mutex<Connection>>,
+    pool: &Arc<ConnectionPool>,
     request: WorkItemListRequest,
 ) -> Result<WorkItemListResponse> {
-    let conn = connection.lock()
-        .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+    let pooled_conn = pool.get()?;
+    let conn = pooled_conn.get();
 
     // Build query components
     let mut params: Vec<Box<dyn ToSql>> = Vec::new();

@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::models::{WorkItemModel, WorkItemTypeModel, WorkItemFieldValueModel, FieldDefinition};
 use crate::repository::WorkItemsRepository;
 use crate::work_item_types_repository::WorkItemTypesRepository;
@@ -10,7 +10,7 @@ use db::repository_base::Entity;
 pub fn get_work_item(
     repository: &Arc<dyn WorkItemsRepository>,
     work_item_types_repository: &Arc<dyn WorkItemTypesRepository>,
-    connection: &Arc<Mutex<Connection>>,
+    pool: &Arc<ConnectionPool>,
     id: &str,
 ) -> Result<Option<WorkItemModel>> {
     // Get the work item entity
@@ -31,8 +31,8 @@ pub fn get_work_item(
     };
 
     // Query field values for this work item
-    let conn = connection.lock()
-        .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+    let pooled_conn = pool.get()?;
+    let conn = pooled_conn.get();
     
     let param: &dyn db::ToSql = &id;
     let params = &[param];

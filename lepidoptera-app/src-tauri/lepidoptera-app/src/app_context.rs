@@ -1,9 +1,9 @@
 use std::fs::create_dir_all;
 use crate::settings::local_settings_store::LocalSettingsStore;
 use anyhow::Result;
-use db::Connection;
+use db::connection_pool::ConnectionPool;
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tauri::{AppHandle, Manager};
 use tauri::path::BaseDirectory;
 use work_items::work_items_port::WorkItemsManager;
@@ -54,14 +54,13 @@ impl AppContextBuilder {
             mru_workspace
         };
 
-        // let db_path = "lepidoptera.db";
-        let conn = Connection::new(dp_path.as_str())?;
-        let shared_connection = Arc::new(Mutex::new(conn));
+        // Create connection pool (initial: 2 connections, max: 10)
+        let connection_pool = Arc::new(ConnectionPool::new(dp_path.clone(), 2, 10)?);
 
-        let work_items_manager = Arc::new(SqliteWorkItemManager::new(shared_connection.clone()));
-        let projects_manager = Arc::new(SqliteProjectsManager::new(shared_connection.clone()));
-        let documents_manager = Arc::new(SqliteDocumentsManager::new(shared_connection.clone()));
-        let sync_manager = Arc::new(SqliteSyncManager::new(shared_connection.clone()));
+        let work_items_manager = Arc::new(SqliteWorkItemManager::new(connection_pool.clone()));
+        let projects_manager = Arc::new(SqliteProjectsManager::new(connection_pool.clone()));
+        let documents_manager = Arc::new(SqliteDocumentsManager::new(connection_pool.clone()));
+        let sync_manager = Arc::new(SqliteSyncManager::new(connection_pool.clone()));
         let local_machine = sync_manager.get_local_machine()?;
         // println!("Local machine: {:?}", local_machine);
 

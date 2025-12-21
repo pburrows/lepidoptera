@@ -1,19 +1,20 @@
 use crate::entities::WorkItemType;
 use db::repository_base::{Entity, GenericRepository};
-use db::{Connection, ToSql, to_sql_vec};
-use std::sync::{Arc, Mutex};
+use db::{ToSql, to_sql_vec};
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::work_item_types_repository::WorkItemTypesRepository;
 
 pub struct SqliteWorkItemTypesRepository {
     inner: GenericRepository<WorkItemType>,
-    connection: Arc<Mutex<Connection>>,
+    pool: Arc<ConnectionPool>,
 }
 
 impl SqliteWorkItemTypesRepository {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         Self {
-            inner: GenericRepository::new(connection.clone()),
-            connection,
+            inner: GenericRepository::new(pool.clone()),
+            pool,
         }
     }
 }
@@ -24,8 +25,8 @@ impl WorkItemTypesRepository for SqliteWorkItemTypesRepository {
     }
 
     fn find_by_project_id(&self, project_id: &str) -> anyhow::Result<Vec<WorkItemType>> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let param: &dyn db::ToSql = &project_id;
         let params = &[param];
@@ -49,8 +50,8 @@ impl WorkItemTypesRepository for SqliteWorkItemTypesRepository {
     }
 
     fn update(&self, work_item_type: WorkItemType) -> anyhow::Result<WorkItemType> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         let id = work_item_type.id.as_ref().ok_or_else(|| anyhow::anyhow!("WorkItemType must have an id to update"))?;
         
         let values = to_sql_vec![
@@ -82,8 +83,8 @@ impl WorkItemTypesRepository for SqliteWorkItemTypesRepository {
     }
 
     fn mark_inactive(&self, id: &str) -> anyhow::Result<()> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         let now = chrono::Utc::now().to_rfc3339();
         
         let values = to_sql_vec![

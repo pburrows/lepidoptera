@@ -1,5 +1,6 @@
 mod migrations;
 pub mod repository_base;
+pub mod connection_pool;
 
 // pub use to_sql_vec;
 
@@ -14,9 +15,27 @@ pub struct Connection {
 impl Connection {
     pub fn new(path: &str) -> Result<Self> {
         let mut conn = rusqlite::Connection::open(path)?;
-        println!("Connected to database: {}", path);
+        
+        // Enable WAL mode for better concurrency
+        conn.pragma_update(None, "journal_mode", "WAL")
+            .map_err(|e| anyhow::anyhow!("Failed to enable WAL mode: {}", e))?;
+        
+        // Set busy timeout to 5 seconds (5000ms) - SQLite will wait instead of failing immediately
+        conn.busy_timeout(std::time::Duration::from_millis(5000))
+            .map_err(|e| anyhow::anyhow!("Failed to set busy timeout: {}", e))?;
+        
+        // Enable foreign keys
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .map_err(|e| anyhow::anyhow!("Failed to enable foreign keys: {}", e))?;
+        
+        println!("Connected to database: {} (WAL mode enabled)", path);
         migrations::run_migrations(&mut conn)?;
         Ok(Self { inner: conn })
+    }
+    
+    /// Begin a transaction - use inner connection directly
+    pub fn inner(&mut self) -> &mut rusqlite::Connection {
+        &mut self.inner
     }
 
     pub fn execute(

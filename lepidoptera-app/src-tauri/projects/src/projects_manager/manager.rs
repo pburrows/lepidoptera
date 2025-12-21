@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::project_ports::ProjectsManager;
 use crate::projects_manager::{create_project, get_all_projects, get_project_by_id, get_project_setting, set_project_setting};
 use crate::projects_sqlite_repository::{ProjectsRepository, ProjectsSqliteRepository};
@@ -13,11 +13,11 @@ pub struct SqliteProjectsManager {
 
 impl SqliteProjectsManager {
 
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         let repository: Arc<dyn ProjectsRepository> =
-            Arc::new(ProjectsSqliteRepository::new(connection.clone()));
+            Arc::new(ProjectsSqliteRepository::new(pool.clone()));
         let settings_repository: Arc<dyn ProjectSettingsRepository> =
-            Arc::new(ProjectSettingsSqliteRepository::new(connection));
+            Arc::new(ProjectSettingsSqliteRepository::new(pool));
         Self { 
             repository,
             settings_repository,

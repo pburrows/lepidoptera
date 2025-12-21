@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::models::{WorkItemModel, WorkItemTypeModel, WorkItemListRequest, WorkItemListResponse, WorkItemRelationshipModel, RelationshipType};
 use crate::repository::WorkItemsRepository;
 use crate::work_items_manager::{
@@ -24,25 +24,25 @@ pub struct SqliteWorkItemManager {
     work_item_types_repository: Arc<dyn WorkItemTypesRepository>,
     number_ranges_repository: Arc<dyn WorkItemNumberRangesRepository>,
     relationships_repository: Arc<dyn WorkItemRelationshipsRepository>,
-    connection: Arc<Mutex<Connection>>,
+    pool: Arc<ConnectionPool>,
 }
 
 impl SqliteWorkItemManager {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         let repository: Arc<dyn WorkItemsRepository> =
-            Arc::new(SqliteWorkItemsRepository::new(connection.clone()));
+            Arc::new(SqliteWorkItemsRepository::new(pool.clone()));
         let work_item_types_repository: Arc<dyn WorkItemTypesRepository> =
-            Arc::new(SqliteWorkItemTypesRepository::new(connection.clone()));
+            Arc::new(SqliteWorkItemTypesRepository::new(pool.clone()));
         let number_ranges_repository: Arc<dyn WorkItemNumberRangesRepository> =
-            Arc::new(SqliteWorkItemNumberRangesRepository::new(connection.clone()));
+            Arc::new(SqliteWorkItemNumberRangesRepository::new(pool.clone()));
         let relationships_repository: Arc<dyn WorkItemRelationshipsRepository> =
-            Arc::new(SqliteWorkItemRelationshipsRepository::new(connection.clone()));
+            Arc::new(SqliteWorkItemRelationshipsRepository::new(pool.clone()));
         Self { 
             repository,
             work_item_types_repository,
             number_ranges_repository,
             relationships_repository,
-            connection,
+            pool,
         }
     }
 }
@@ -53,7 +53,7 @@ impl WorkItemsManager for SqliteWorkItemManager {
         get_work_item::get_work_item(
             &self.repository,
             &self.work_item_types_repository,
-            &self.connection,
+            &self.pool,
             id,
         )
     }
@@ -63,7 +63,7 @@ impl WorkItemsManager for SqliteWorkItemManager {
             &self.repository,
             &self.work_item_types_repository,
             &self.number_ranges_repository,
-            &self.connection,
+            &self.pool,
             work_item,
             sequence_prefix,
             machine_id,
@@ -74,7 +74,7 @@ impl WorkItemsManager for SqliteWorkItemManager {
         list_work_items::list_work_items(
             &self.repository,
             &self.work_item_types_repository,
-            &self.connection,
+            &self.pool,
             request,
         )
     }

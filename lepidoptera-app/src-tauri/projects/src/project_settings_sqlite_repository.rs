@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use db::repository_base::{Entity, GenericRepository};
 use crate::entities::ProjectSettings;
 use anyhow::Result;
@@ -12,19 +12,22 @@ pub trait ProjectSettingsRepository: Send + Sync {
 
 pub struct ProjectSettingsSqliteRepository {
     inner: GenericRepository<ProjectSettings>,
+    pool: Arc<ConnectionPool>,
 }
 
 impl ProjectSettingsSqliteRepository {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         Self {
-            inner: GenericRepository::new(connection),
+            inner: GenericRepository::new(pool.clone()),
+            pool,
         }
     }
 }
 
 impl ProjectSettingsRepository for ProjectSettingsSqliteRepository {
     fn find_by_project_and_key(&self, project_id: &str, setting_key: &str) -> Result<Option<ProjectSettings>> {
-        let conn = self.inner.connection()?;
+         let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let params: &[&dyn ToSql] = &[&project_id, &setting_key];
         let mut results = conn.query(

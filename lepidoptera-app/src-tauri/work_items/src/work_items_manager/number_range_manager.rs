@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::work_item_number_ranges_repository::WorkItemNumberRangesRepository;
 use crate::entities::WorkItemNumberRange;
 use anyhow::{Result, Context};
@@ -15,17 +15,17 @@ const RANGE_EXHAUSTION_THRESHOLD: i64 = 800; // Claim new range when 80% exhaust
 /// When a range is exhausted, a new range is claimed.
 pub struct NumberRangeManager {
     repository: Arc<dyn WorkItemNumberRangesRepository>,
-    connection: Arc<Mutex<Connection>>,
+    pool: Arc<ConnectionPool>,
 }
 
 impl NumberRangeManager {
     pub fn new(
         repository: Arc<dyn WorkItemNumberRangesRepository>,
-        connection: Arc<Mutex<Connection>>,
+        pool: Arc<ConnectionPool>,
     ) -> Self {
         Self {
             repository,
-            connection,
+            pool,
         }
     }
 

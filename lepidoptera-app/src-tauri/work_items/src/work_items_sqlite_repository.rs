@@ -1,7 +1,7 @@
 use crate::entities::WorkItem;
 use db::repository_base::GenericRepository;
-use db::Connection;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::repository::WorkItemsRepository;
 
 pub struct SqliteWorkItemsRepository {
@@ -9,9 +9,9 @@ pub struct SqliteWorkItemsRepository {
 }
 
 impl SqliteWorkItemsRepository {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         Self {
-            inner: GenericRepository::new(connection),
+            inner: GenericRepository::new(pool),
         }
     }
 }

@@ -1,6 +1,6 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use rusqlite::ToSql;
-use db::Connection;
+use db::connection_pool::ConnectionPool;
 use db::repository_base::{Entity, GenericRepository};
 use crate::entities::{Document, DocumentVersion};
 use crate::docuent_ports::NavigationDocument;
@@ -18,14 +18,14 @@ pub trait DocumentsRepository: Send + Sync {
 
 pub struct SqliteDocumentsRepository {
     inner: GenericRepository<Document>,
-    connection: Arc<Mutex<Connection>>
+    pool: Arc<ConnectionPool>
 }
 
 impl SqliteDocumentsRepository {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         Self {
-            inner: GenericRepository::new(connection.clone()),
-            connection
+            inner: GenericRepository::new(pool.clone()),
+            pool
         }
     }
 }
@@ -36,9 +36,8 @@ impl DocumentsRepository for SqliteDocumentsRepository {
     }
 
     fn find_all(&self) -> anyhow::Result<Vec<Document>> {
-        let conn = self.connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
 
         let documents = conn.query(
             &format!("SELECT * FROM {}", Document::table_name()),
@@ -54,9 +53,8 @@ impl DocumentsRepository for SqliteDocumentsRepository {
     }
 
     fn find_by_project_id(&self, project_id: &str, active_only: bool) -> anyhow::Result<Vec<Document>> {
-        let conn = self.connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         let param: &dyn ToSql = &&project_id;
         let params = &[param];
         let mut query: String  = "SELECT * FROM documents WHERE project_id = ?1".to_string();
@@ -72,9 +70,8 @@ impl DocumentsRepository for SqliteDocumentsRepository {
     }
 
     fn find_latest_version_for_document(&self, document_id: &str) -> anyhow::Result<Option<DocumentVersion>> {
-        let conn = self.connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let param: &dyn ToSql = &&document_id;
         let params = &[param];
@@ -92,9 +89,8 @@ impl DocumentsRepository for SqliteDocumentsRepository {
             return Ok(vec![]);
         }
 
-        let conn = self.connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let placeholders: Vec<String> = (1..=document_ids.len())
             .map(|i| format!("?{}", i))
@@ -112,9 +108,8 @@ impl DocumentsRepository for SqliteDocumentsRepository {
     }
 
     fn get_latest_documents(&self, project_id: &str) -> anyhow::Result<Vec<NavigationDocument>> {
-        let conn = self.connection
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let param: &dyn ToSql = &&project_id;
         let params = &[param];

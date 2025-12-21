@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use db::Connection;
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::sync_ports::SyncManager;
 use crate::sync_manager::get_local_machine;
 use crate::local_machine_sqlite_repository::{LocalMachineRepository, LocalMachineSqliteRepository};
@@ -9,9 +9,9 @@ pub struct SqliteSyncManager {
 }
 
 impl SqliteSyncManager {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         let repository: Arc<dyn LocalMachineRepository> =
-            Arc::new(LocalMachineSqliteRepository::new(connection));
+            Arc::new(LocalMachineSqliteRepository::new(pool));
         Self {
             repository,
         }

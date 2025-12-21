@@ -1,19 +1,20 @@
 use crate::entities::WorkItemRelationship;
 use db::repository_base::{Entity, GenericRepository};
-use db::{to_sql_vec, Connection, ToSql};
-use std::sync::{Arc, Mutex};
+use db::{to_sql_vec, ToSql};
+use std::sync::Arc;
+use db::connection_pool::ConnectionPool;
 use crate::work_item_relationships_repository::WorkItemRelationshipsRepository;
 
 pub struct SqliteWorkItemRelationshipsRepository {
     inner: GenericRepository<WorkItemRelationship>,
-    connection: Arc<Mutex<Connection>>,
+    pool: Arc<ConnectionPool>,
 }
 
 impl SqliteWorkItemRelationshipsRepository {
-    pub fn new(connection: Arc<Mutex<Connection>>) -> Self {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
         Self {
-            inner: GenericRepository::new(connection.clone()),
-            connection,
+            inner: GenericRepository::new(pool.clone()),
+            pool,
         }
     }
 }
@@ -24,8 +25,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn find_by_source_work_item_id(&self, source_work_item_id: &str) -> anyhow::Result<Vec<WorkItemRelationship>> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let param: &dyn db::ToSql = &source_work_item_id;
         let params = &[param];
@@ -44,8 +45,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn find_by_target_work_item_id(&self, target_work_item_id: &str) -> anyhow::Result<Vec<WorkItemRelationship>> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let param: &dyn db::ToSql = &target_work_item_id;
         let params = &[param];
@@ -64,8 +65,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn find_by_source_and_type(&self, source_work_item_id: &str, relationship_type: &str) -> anyhow::Result<Vec<WorkItemRelationship>> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let params: &[&dyn db::ToSql] = &[&source_work_item_id, &relationship_type];
         
@@ -83,8 +84,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn find_by_target_and_type(&self, target_work_item_id: &str, relationship_type: &str) -> anyhow::Result<Vec<WorkItemRelationship>> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let params: &[&dyn db::ToSql] = &[&target_work_item_id, &relationship_type];
         
@@ -102,8 +103,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn find_by_work_item_id(&self, work_item_id: &str) -> anyhow::Result<Vec<WorkItemRelationship>> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let param: &dyn db::ToSql = &work_item_id;
         let params = &[param, param];
@@ -122,8 +123,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn find_by_project_id(&self, project_id: &str) -> anyhow::Result<Vec<WorkItemRelationship>> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let param: &dyn db::ToSql = &project_id;
         let params = &[param];
@@ -146,8 +147,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn update(&self, relationship: WorkItemRelationship) -> anyhow::Result<WorkItemRelationship> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         let id = relationship.id.as_ref().ok_or_else(|| anyhow::anyhow!("WorkItemRelationship must have an id to update"))?;
         
         let now = chrono::Utc::now().to_rfc3339();
@@ -177,8 +178,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn mark_inactive(&self, id: &str) -> anyhow::Result<()> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         let now = chrono::Utc::now().to_rfc3339();
         
         let values: Vec<Box<dyn ToSql>> = vec![
@@ -198,8 +199,8 @@ impl WorkItemRelationshipsRepository for SqliteWorkItemRelationshipsRepository {
     }
 
     fn delete(&self, id: &str) -> anyhow::Result<()> {
-        let conn = self.connection.lock()
-            .map_err(|e| anyhow::anyhow!("Failed to lock connection: {}", e))?;
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
         
         let values = to_sql_vec![
             id.to_string(),
