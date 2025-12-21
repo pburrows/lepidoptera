@@ -12,6 +12,26 @@ pub fn set_project_setting(
     setting_value: Value,
     updated_by: String,
 ) -> Result<Value> {
+    // If this is SEQUENCE_PREFIX, check for uniqueness
+    if setting_key == "SEQUENCE_PREFIX" {
+        if let Value::String(prefix_value) = &setting_value {
+            // Serialize the value to JSON string for comparison (as stored in DB)
+            let serialized_value = serde_json::to_string(&setting_value)
+                .map_err(|e| anyhow::anyhow!("Failed to serialize setting value: {}", e))?;
+            
+            // Check if another project already has this SEQUENCE_PREFIX
+            if let Some(existing_setting) = repository.find_by_key_and_value("SEQUENCE_PREFIX", &serialized_value)? {
+                // If it's the same project, allow the update
+                if existing_setting.project_id != project_id {
+                    return Err(anyhow::anyhow!(
+                        "A project with SEQUENCE_PREFIX '{}' already exists. Please choose a different prefix.",
+                        prefix_value
+                    ));
+                }
+            }
+        }
+    }
+    
     // Check if setting already exists to preserve created_at and created_by
     let existing = repository.find_by_project_and_key(&project_id, &setting_key)?;
     

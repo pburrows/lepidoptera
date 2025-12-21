@@ -8,6 +8,7 @@ use rusqlite::ToSql;
 pub trait ProjectSettingsRepository: Send + Sync {
     fn find_by_project_and_key(&self, project_id: &str, setting_key: &str) -> Result<Option<ProjectSettings>>;
     fn upsert(&self, setting: ProjectSettings) -> Result<ProjectSettings>;
+    fn find_by_key_and_value(&self, setting_key: &str, setting_value: &str) -> Result<Option<ProjectSettings>>;
 }
 
 pub struct ProjectSettingsSqliteRepository {
@@ -78,6 +79,20 @@ impl ProjectSettingsRepository for ProjectSettingsSqliteRepository {
             
             Ok(setting)
         })
+    }
+
+    fn find_by_key_and_value(&self, setting_key: &str, setting_value: &str) -> Result<Option<ProjectSettings>> {
+        let pooled_conn = self.pool.get()?;
+        let conn = pooled_conn.get();
+        
+        let params: &[&dyn ToSql] = &[&setting_key, &setting_value];
+        let mut results = conn.query(
+            "SELECT * FROM project_settings WHERE setting_key = ?1 AND setting_value = ?2",
+            params,
+            |row| ProjectSettings::from_row(row),
+        )?;
+        
+        Ok(results.pop())
     }
 }
 

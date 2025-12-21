@@ -2,4 +2,8 @@ pub mod work_item_commands;
 pub mod navigation_commands;
 pub mod project_template_commands;
 pub mod project_commands;
+pub mod attachment_commands;
+pub mod file_commands;
 pub mod logging;
+pub mod default_kanban_template;
+pub mod person_commands;

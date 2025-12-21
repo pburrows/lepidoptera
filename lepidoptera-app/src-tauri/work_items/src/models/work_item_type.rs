@@ -19,6 +19,8 @@ pub struct WorkItemTypeModel {
     pub created_at: String,
     pub updated_at: Option<String>,
     pub is_active: bool,
+    pub name: String,
+    pub display_name: String,
     // Hydrated JSON fields
     pub allowed_children_type_ids: AllowedChildrenTypeIds,
     pub allowed_statuses: AllowedStatuses,
@@ -37,6 +39,8 @@ impl WorkItemTypeModel {
             created_at: entity.created_at,
             updated_at: entity.updated_at,
             is_active: entity.is_active,
+            name: entity.name,
+            display_name: entity.display_name,
             allowed_children_type_ids: serde_json::from_str(&entity.allowed_children_type_ids)
                 .context("Failed to parse allowed_children_type_ids")?,
             allowed_statuses: serde_json::from_str(&entity.allowed_statuses)
@@ -60,6 +64,8 @@ impl WorkItemTypeModel {
             created_at: self.created_at.clone(),
             updated_at: self.updated_at.clone(),
             is_active: self.is_active,
+            name: self.name.clone(),
+            display_name: self.display_name.clone(),
             allowed_children_type_ids: serde_json::to_string(&self.allowed_children_type_ids)
                 .context("Failed to serialize allowed_children_type_ids")?,
             allowed_statuses: serde_json::to_string(&self.allowed_statuses)

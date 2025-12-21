@@ -20,6 +20,8 @@ pub struct WorkItemType {
     pub created_at: String,
     pub updated_at: Option<String>,
     pub is_active: bool,
+    pub name: String,
+    pub display_name: String,
     pub allowed_children_type_ids: String, // JSON field
     pub allowed_statuses: String, // JSON field
     pub allowed_priorities: String, // JSON field
@@ -40,6 +42,8 @@ impl Entity for WorkItemType {
             "created_at",
             "updated_at",
             "is_active",
+            "name",
+            "display_name",
             "allowed_children_type_ids",
             "allowed_statuses",
             "allowed_priorities",
@@ -56,12 +60,14 @@ impl Entity for WorkItemType {
             created_at: row.get(2)?,
             updated_at: row.get(3)?,
             is_active: row.get(4)?,
-            allowed_children_type_ids: row.get(5)?,
-            allowed_statuses: row.get(6)?,
-            allowed_priorities: row.get(7)?,
-            assignment_field_definitions: row.get(8)?,
-            work_item_details: row.get(9)?,
-            work_item_fields: row.get(10)?,
+            name: row.get(5)?,
+            display_name: row.get(6)?,
+            allowed_children_type_ids: row.get(7)?,
+            allowed_statuses: row.get(8)?,
+            allowed_priorities: row.get(9)?,
+            assignment_field_definitions: row.get(10)?,
+            work_item_details: row.get(11)?,
+            work_item_fields: row.get(12)?,
         })
     }
 
@@ -80,6 +86,8 @@ impl Entity for WorkItemType {
             self.created_at.clone(),
             self.updated_at.clone(),
             self.is_active,
+            self.name.clone(),
+            self.display_name.clone(),
             self.allowed_children_type_ids.clone(),
             self.allowed_statuses.clone(),
             self.allowed_priorities.clone(),
@@ -94,6 +102,8 @@ impl Entity for WorkItemType {
             self.project_id.clone(),
             self.updated_at.clone(),
             self.is_active,
+            self.name.clone(),
+            self.display_name.clone(),
             self.allowed_children_type_ids.clone(),
             self.allowed_statuses.clone(),
             self.allowed_priorities.clone(),

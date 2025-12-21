@@ -1,0 +1,82 @@
+.project-general-settings {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-general-settings-loading,
+.project-general-settings-error {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--gray-11);
+  font-size: 14px;
+}
+
+.project-general-settings-error {
+  color: var(--red-11);
+}
+
+.project-general-settings-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.project-general-settings-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.project-general-settings-icon-container {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  cursor: pointer;
+  border-radius: var(--radius-3);
+  overflow: hidden;
+  transition: all 150ms ease;
+  border: 2px solid var(--gray-6);
+
+  &:hover {
+    border-color: var(--accent-8);
+    box-shadow: var(--shadow-2);
+  }
+
+  &.drag-active {
+    border-color: var(--accent-9);
+    box-shadow: var(--shadow-4);
+  }
+}
+
+.project-general-settings-icon-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.project-general-settings-icon-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.project-general-settings-color-input {
+  width: 48px;
+  height: 32px;
+  border: 1px solid var(--gray-6);
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  padding: 0;
+  background: none;
+}
+

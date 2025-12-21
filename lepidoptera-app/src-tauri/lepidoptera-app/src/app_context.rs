@@ -14,6 +14,10 @@ use projects::project_ports::ProjectsManager;
 use projects::projects_manager::manager::SqliteProjectsManager;
 use sync::sync_ports::SyncManager;
 use sync::sync_manager::manager::SqliteSyncManager;
+use attachment_store::attachment_ports::AttachmentsManager;
+use attachment_store::attachments_manager::manager::SqliteAttachmentsManager;
+use people::people_ports::PersonManager;
+use people::people_manager::manager::SqlitePeopleManager;
 use crate::settings::settings_store::SettingsStore;
 
 pub struct AppContext {
@@ -21,6 +25,8 @@ pub struct AppContext {
     pub projects: Arc<dyn ProjectsManager>,
     pub documents: Arc<dyn DocumentsManager>,
     pub sync: Arc<dyn SyncManager>,
+    pub attachments: Arc<dyn AttachmentsManager>,
+    pub people: Arc<dyn PersonManager>,
     pub local_settings: LocalSettingsStore,
 }
 
@@ -61,6 +67,8 @@ impl AppContextBuilder {
         let projects_manager = Arc::new(SqliteProjectsManager::new(connection_pool.clone()));
         let documents_manager = Arc::new(SqliteDocumentsManager::new(connection_pool.clone()));
         let sync_manager = Arc::new(SqliteSyncManager::new(connection_pool.clone()));
+        let attachments_manager = Arc::new(SqliteAttachmentsManager::new(connection_pool.clone()));
+        let people_manager = Arc::new(SqlitePeopleManager::new(connection_pool.clone()));
         let local_machine = sync_manager.get_local_machine()?;
         // println!("Local machine: {:?}", local_machine);
 
@@ -69,6 +77,8 @@ impl AppContextBuilder {
             projects: projects_manager,
             documents: documents_manager,
             sync: sync_manager,
+            attachments: attachments_manager,
+            people: people_manager,
             local_settings: self.settings,
         })
     }

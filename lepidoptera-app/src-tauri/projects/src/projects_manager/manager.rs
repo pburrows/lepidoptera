@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use db::connection_pool::ConnectionPool;
 use crate::project_ports::ProjectsManager;
-use crate::projects_manager::{create_project, get_all_projects, get_project_by_id, get_project_setting, set_project_setting};
+use crate::projects_manager::{create_project, get_all_projects, get_project_by_id, get_project_setting, set_project_setting, update_project};
 use crate::projects_sqlite_repository::{ProjectsRepository, ProjectsSqliteRepository};
 use crate::project_settings_sqlite_repository::{ProjectSettingsRepository, ProjectSettingsSqliteRepository};
 use serde_json::Value;
@@ -31,7 +31,7 @@ impl ProjectsManager for SqliteProjectsManager {
     }
 
     fn get_projects(&self) -> anyhow::Result<Vec<crate::entities::Project>> {
-        get_all_projects::get_all_projects(&self.repository, &self.settings_repository)
+        get_all_projects::get_all_projects(&self.repository)
     }
 
     fn create_project(&self, project: crate::entities::Project) -> anyhow::Result<crate::entities::Project> {
@@ -44,5 +44,9 @@ impl ProjectsManager for SqliteProjectsManager {
 
     fn set_project_setting(&self, project_id: String, setting_key: String, setting_value: Value, updated_by: String) -> anyhow::Result<Value> {
         set_project_setting::set_project_setting(&self.settings_repository, project_id, setting_key, setting_value, updated_by)
+    }
+
+    fn update_project(&self, project: crate::entities::Project) -> anyhow::Result<crate::entities::Project> {
+        update_project::update_project(&self.repository, project)
     }
 }

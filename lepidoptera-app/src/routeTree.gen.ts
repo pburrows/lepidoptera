@@ -22,6 +22,7 @@ import { Route as DocumentIdRouteImport } from './routes/document/$id'
 import { Route as WorkItemsNewEditRouteImport } from './routes/work-items/new.edit'
 import { Route as WorkItemsIdEditRouteImport } from './routes/work-items/$id.edit'
 import { Route as ProjectsNewEditRouteImport } from './routes/projects/new.edit'
+import { Route as ProjectsIdEditRouteImport } from './routes/projects/$id.edit'
 import { Route as DocumentNewEditRouteImport } from './routes/document/new.edit'
 import { Route as DocumentIdEditRouteImport } from './routes/document/$id.edit'
 
@@ -90,6 +91,11 @@ const ProjectsNewEditRoute = ProjectsNewEditRouteImport.update({
   path: '/projects/new/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsIdEditRoute = ProjectsIdEditRouteImport.update({
+  id: '/projects/$id/edit',
+  path: '/projects/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentNewEditRoute = DocumentNewEditRouteImport.update({
   id: '/new/edit',
   path: '/new/edit',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/work-items/backlog': typeof WorkItemsBacklogRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
+  '/projects/$id/edit': typeof ProjectsIdEditRoute
   '/projects/new/edit': typeof ProjectsNewEditRoute
   '/work-items/$id/edit': typeof WorkItemsIdEditRoute
   '/work-items/new/edit': typeof WorkItemsNewEditRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/work-items/backlog': typeof WorkItemsBacklogRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
+  '/projects/$id/edit': typeof ProjectsIdEditRoute
   '/projects/new/edit': typeof ProjectsNewEditRoute
   '/work-items/$id/edit': typeof WorkItemsIdEditRoute
   '/work-items/new/edit': typeof WorkItemsNewEditRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/work-items/backlog': typeof WorkItemsBacklogRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
+  '/projects/$id/edit': typeof ProjectsIdEditRoute
   '/projects/new/edit': typeof ProjectsNewEditRoute
   '/work-items/$id/edit': typeof WorkItemsIdEditRoute
   '/work-items/new/edit': typeof WorkItemsNewEditRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/work-items/backlog'
     | '/document/$id/edit'
     | '/document/new/edit'
+    | '/projects/$id/edit'
     | '/projects/new/edit'
     | '/work-items/$id/edit'
     | '/work-items/new/edit'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/work-items/backlog'
     | '/document/$id/edit'
     | '/document/new/edit'
+    | '/projects/$id/edit'
     | '/projects/new/edit'
     | '/work-items/$id/edit'
     | '/work-items/new/edit'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/work-items/backlog'
     | '/document/$id/edit'
     | '/document/new/edit'
+    | '/projects/$id/edit'
     | '/projects/new/edit'
     | '/work-items/$id/edit'
     | '/work-items/new/edit'
@@ -215,6 +227,7 @@ export interface RootRouteChildren {
   OverviewRoute: typeof OverviewRoute
   ProjectsManageRoute: typeof ProjectsManageRoute
   WorkItemsRoute: typeof WorkItemsRouteWithChildren
+  ProjectsIdEditRoute: typeof ProjectsIdEditRoute
   ProjectsNewEditRoute: typeof ProjectsNewEditRoute
 }
 
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsNewEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/$id/edit': {
+      id: '/projects/$id/edit'
+      path: '/projects/$id/edit'
+      fullPath: '/projects/$id/edit'
+      preLoaderRoute: typeof ProjectsIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/document/new/edit': {
       id: '/document/new/edit'
       path: '/new/edit'
@@ -390,6 +410,7 @@ const rootRouteChildren: RootRouteChildren = {
   OverviewRoute: OverviewRoute,
   ProjectsManageRoute: ProjectsManageRoute,
   WorkItemsRoute: WorkItemsRouteWithChildren,
+  ProjectsIdEditRoute: ProjectsIdEditRoute,
   ProjectsNewEditRoute: ProjectsNewEditRoute,
 }
 export const routeTree = rootRouteImport

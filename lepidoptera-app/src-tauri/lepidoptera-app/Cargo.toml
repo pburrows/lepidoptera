@@ -28,6 +28,8 @@ work_items = { path = "../work_items" }
 projects = {path = "../projects"}
 documents = {path = "../documents" }
 sync = { path = "../sync" }
+attachment_store = { path = "../attachment_store" }
+people = { path = "../people" }
 
 [lints.rust]
 unused_variables = "allow"

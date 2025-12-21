@@ -2030,10 +2030,12 @@ name = "lepidoptera-app"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "attachment_store",
  "chrono",
  "db",
  "documents",
  "log",
+ "people",
  "projects",
  "serde",
  "serde_json",

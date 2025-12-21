@@ -4,3 +4,4 @@ pub mod manager;
 pub mod get_project_by_id;
 pub mod get_project_setting;
 pub mod set_project_setting;
+pub mod update_project;

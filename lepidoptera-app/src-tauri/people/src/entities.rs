@@ -18,7 +18,7 @@ impl Entity for Person {
     }
 
     fn columns() -> &'static [&'static str] {
-        &["created_at", "updated_at", "display_name", "is_active"]
+        &["id", "created_at", "updated_at", "display_name", "is_active"]
     }
 
     fn from_row(row: &Row) -> rusqlite::Result<Self> {
@@ -41,17 +41,21 @@ impl Entity for Person {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(),
+            self.created_at.clone(),
+            self.updated_at.clone(),
             self.display_name.clone(),
             self.is_active,
-            self.created_at.clone(),
         ]
     }
 
     fn update_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(), // id (won't actually be updated, but required for SQL generation)
+            self.created_at.clone(), // created_at (won't actually be updated, but required for SQL generation)
+            self.updated_at.clone(),
             self.display_name.clone(),
             self.is_active,
-            self.updated_at.clone(),
         ]
     }
 

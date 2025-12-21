@@ -55,10 +55,12 @@ impl Entity for Project {
 
     fn update_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(), // id (won't actually be updated, but required for SQL generation)
+            self.created_at.clone(), // created_at (won't actually be updated, but required for SQL generation)
+            self.updated_at.clone(),
             self.name.clone(),
             self.description.clone(),
             self.is_active,
-            self.updated_at.clone(),
         ]
     }
 

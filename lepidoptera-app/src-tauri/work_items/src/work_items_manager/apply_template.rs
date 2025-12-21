@@ -26,6 +26,8 @@ pub fn apply_template(
             created_at: String::new(), // Will be set by create_work_item_type
             updated_at: None,
             is_active: true,
+            name: template_type.name.clone(),
+            display_name: template_type.display_name.clone(),
             allowed_children_type_ids: vec![], // Will be resolved in second pass
             allowed_statuses: serde_json::from_value(serde_json::Value::Array(template_type.allowed_statuses.clone()))
                 .context("Failed to parse allowed_statuses")?,

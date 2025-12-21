@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaCog } from 'react-icons/fa';
 import { useNavigationStore } from '../../stores/navigation-store';
 import './project-list.styles.scss';
 
@@ -48,6 +48,7 @@ export default function ProjectList() {
                                 <th>Created</th>
                                 <th>Updated</th>
                                 <th>Status</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -73,6 +74,18 @@ export default function ProjectList() {
                                         <span className={`project-list-status-badge ${project.is_active ? 'active' : 'inactive'}`}>
                                             {project.is_active ? 'Active' : 'Inactive'}
                                         </span>
+                                    </td>
+                                    <td className="project-list-actions">
+                                        <button
+                                            className="project-list-settings-button"
+                                            onClick={() => navigate({ 
+                                                to: '/projects/$id/edit', 
+                                                params: { id: project.id || '' } 
+                                            })}
+                                            title="Project Settings"
+                                        >
+                                            <FaCog className="project-list-settings-icon" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

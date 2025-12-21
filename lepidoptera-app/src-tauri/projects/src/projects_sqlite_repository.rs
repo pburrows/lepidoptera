@@ -8,6 +8,7 @@ pub trait ProjectsRepository: Send + Sync {
     fn find_by_id(&self, id: &str) -> Result<Option<Project>>;
     fn find_all(&self) -> Result<Vec<Project>>;
     fn create(&self, project: Project) -> Result<Project>;
+    fn update(&self, project: Project) -> Result<Project>;
 }
 
 pub struct ProjectsSqliteRepository {
@@ -42,5 +43,12 @@ impl ProjectsRepository for ProjectsSqliteRepository {
 
     fn create(&self, project: Project) -> Result<Project> {
        self.inner.create(project, None)
+    }
+
+    fn update(&self, project: Project) -> Result<Project> {
+        self.inner.with_connection(|conn| {
+            self.inner.update(&project, Some(conn))?;
+            Ok(project)
+        })
     }
 }

@@ -251,8 +251,22 @@ pub fn get_projects(
             return Err("Failed to lock context".to_string());
         }
     };
+
+    let projects_manager = ctx.projects.clone();
+    let work_items_manager = ctx.work_items.clone();
+    drop(ctx);
+
+    use crate::commands::person_commands::ensure_initial_user;
+    if let Err(e) = ensure_initial_user(state.clone()) {
+        error!("[COMMAND] {} failed to ensure initial user: {}", command_name, e);
+    }
+
+    use crate::commands::project_commands::ensure_initial_project;
+    if let Err(e) = ensure_initial_project(state.clone()) {
+        error!("[COMMAND] {} failed to ensure initial project: {}", command_name, e);
+    }
     
-    match ctx.projects.get_projects() {
+    match projects_manager.get_projects() {
         Ok(projects) => {
             let duration = start.elapsed();
             info!("[COMMAND] {} completed successfully in {:?} ({} projects)", 

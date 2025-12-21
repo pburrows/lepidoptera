@@ -26,6 +26,7 @@ impl Entity for Attachment {
 
     fn columns() -> &'static [&'static str] {
         &[
+            "id",
             "project_id",
             "created_at",
             "created_by",
@@ -67,9 +68,14 @@ impl Entity for Attachment {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(),
             self.project_id.clone(),
             self.created_at.clone(),
             self.created_by.clone(),
+            self.updated_at.clone(),
+            self.updated_by.clone(),
+            self.deleted_at.clone(),
+            self.deleted_by.clone(),
             self.file_name.clone(),
             self.file_type.clone(),
             self.file_size,
