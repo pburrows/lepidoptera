@@ -8,3 +8,7 @@ authors.workspace = true
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = {workspace = true}
+
+[lints.rust]
+unused_variables = "allow"
+dead_code = "allow"

@@ -10,4 +10,9 @@ rusqlite = { workspace = true }
 rusqlite_migration = "2.3.0"
 anyhow = { workspace = true }
 tauri = { workspace = true }
+log = "0.4"
 shared = { path = "../shared" }
+
+[lints.rust]
+unused_variables = "allow"
+dead_code = "allow"

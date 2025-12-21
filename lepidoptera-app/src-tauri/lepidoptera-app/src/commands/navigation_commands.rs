@@ -5,6 +5,7 @@ use tauri::State;
 use documents::docuent_ports::NavigationDocument;
 use work_items::entities::WorkItem;
 use projects::entities::Project;
+use log::{debug, error, info};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NavigationItem {
@@ -35,11 +36,33 @@ pub fn get_navigation(
     project_id: String,
     state: State<'_, Mutex<Arc<AppContext>>>,
 ) -> Result<NavigationResponse, String> {
-    let ctx = state.lock().map_err(|_| "Failed to lock context")?;
+    let command_name = "get_navigation";
+    debug!("[COMMAND] {} called: project_id={}", command_name, project_id);
+    let start = std::time::Instant::now();
+    
+    let ctx = match state.lock() {
+        Ok(ctx) => ctx,
+        Err(e) => {
+            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
+            return Err("Failed to lock context".to_string());
+        }
+    };
 
-    let work_items = get_all_work_items(&ctx).map_err(|_| "Failed to get work_items")?;
+    let work_items = match get_all_work_items(&ctx) {
+        Ok(items) => items,
+        Err(e) => {
+            error!("[COMMAND] {} failed to get work_items: {}", command_name, e);
+            return Err(format!("Failed to get work_items: {}", e));
+        }
+    };
 
-    let documents = get_all_documents(&ctx, &project_id).map_err(|e| format!("Failed to get documents. {}", e))?;
+    let documents = match get_all_documents(&ctx, &project_id) {
+        Ok(docs) => docs,
+        Err(e) => {
+            error!("[COMMAND] {} failed to get documents: {}", command_name, e);
+            return Err(format!("Failed to get documents: {}", e));
+        }
+    };
 
     let mut sections = vec![];
 
@@ -47,12 +70,15 @@ pub fn get_navigation(
     build_work_item_section(&mut sections, &work_items);
     build_document_section(&mut sections, &documents);
 
+    let duration = start.elapsed();
+    info!("[COMMAND] {} completed successfully in {:?} ({} sections, {} documents)", 
+          command_name, duration, sections.len(), documents.len());
     Ok(NavigationResponse { sections })
 }
 
 fn build_work_item_section(sections: &mut Vec<NavigationSection>, work_items: &Vec<WorkItem>) {
-    let mut backlog_items = Vec::new();
-    let mut sprint_items = Vec::new();
+    let backlog_items = Vec::new();
+    let sprint_items = Vec::new();
 
     let backlog_item = NavigationItem {
         id: "backlog".to_string(),
@@ -152,7 +178,7 @@ fn build_document_tree(documents: &[NavigationDocument]) -> Vec<NavigationItem> 
     }
 
     // Build root items (documents with no parent)
-    let mut root_items: Vec<NavigationItem> = children_map
+    let root_items: Vec<NavigationItem> = children_map
         .get(&None)
         .map(|root_docs| {
             let mut items: Vec<NavigationItem> = root_docs
@@ -214,7 +240,29 @@ fn get_all_documents(ctx: &AppContext, project_id: &str) -> anyhow::Result<Vec<N
 pub fn get_projects(
     state: State<'_, Mutex<Arc<AppContext>>>,
 ) -> Result<Vec<Project>, String> {
-    let ctx = state.lock().map_err(|_| "Failed to lock context")?;
-    let projects = ctx.projects.get_projects().map_err(|e| format!("Failed to get projects: {}", e))?;
-    Ok(projects)
+    let command_name = "get_projects";
+    debug!("[COMMAND] {} called", command_name);
+    let start = std::time::Instant::now();
+    
+    let ctx = match state.lock() {
+        Ok(ctx) => ctx,
+        Err(e) => {
+            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
+            return Err("Failed to lock context".to_string());
+        }
+    };
+    
+    match ctx.projects.get_projects() {
+        Ok(projects) => {
+            let duration = start.elapsed();
+            info!("[COMMAND] {} completed successfully in {:?} ({} projects)", 
+                  command_name, duration, projects.len());
+            Ok(projects)
+        }
+        Err(e) => {
+            let duration = start.elapsed();
+            error!("[COMMAND] {} failed after {:?}: {}", command_name, duration, e);
+            Err(format!("Failed to get projects: {}", e))
+        }
+    }
 }

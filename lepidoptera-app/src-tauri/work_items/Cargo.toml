@@ -14,3 +14,7 @@ ulid = { workspace = true }
 regex = "1"
 thiserror = "1"
 db = { path = "../db" }
+
+[lints.rust]
+unused_variables = "allow"
+dead_code = "allow"

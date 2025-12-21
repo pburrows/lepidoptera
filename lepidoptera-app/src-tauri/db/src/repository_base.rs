@@ -3,6 +3,7 @@ use crate::connection_pool::{ConnectionPool, PooledConnection};
 use anyhow::Result;
 use rusqlite::{Row, ToSql};
 use std::sync::Arc;
+use log::{debug, error};
 
 #[macro_export]
 macro_rules! to_sql_vec {
@@ -56,23 +57,50 @@ impl<E: Entity> GenericRepository<E> {
             E::primary_key()
         );
 
-        let mut results = if let Some(conn_ref) = conn {
-            // Use provided connection
-            conn_ref.query(
-                &sql,
-                &[&id],
-                |row| E::from_row(row),
-            )?
-        } else {
-            // Get connection from pool if no connection provided
-            let pooled_conn = self.pool.get()?;
-            pooled_conn.get().query(
-                &sql,
-                &[&id],
-                |row| E::from_row(row),
-            )?
+        debug!("[DB] find_by_id: table={}, id={}", E::table_name(), id);
+        let start = std::time::Instant::now();
+
+        let result = {
+            let results = if let Some(conn_ref) = conn {
+                // Use provided connection
+                conn_ref.query(
+                    &sql,
+                    &[&id],
+                    |row| E::from_row(row),
+                )
+            } else {
+                // Get connection from pool if no connection provided
+                let pooled_conn = self.pool.get().map_err(|e| {
+                    error!("[DB] Failed to get connection from pool: {}", e);
+                    e
+                })?;
+                pooled_conn.get().query(
+                    &sql,
+                    &[&id],
+                    |row| E::from_row(row),
+                )
+            };
+
+            match results {
+                Ok(mut rows) => {
+                    let entity = rows.pop();
+                    let duration = start.elapsed();
+                    if entity.is_some() {
+                        debug!("[DB] find_by_id: found entity in {:?}", duration);
+                    } else {
+                        debug!("[DB] find_by_id: entity not found in {:?}", duration);
+                    }
+                    Ok(entity)
+                }
+                Err(e) => {
+                    let duration = start.elapsed();
+                    error!("[DB] find_by_id failed after {:?}: {}", duration, e);
+                    Err(anyhow::anyhow!("Database query error: {}", e))
+                }
+            }
         };
-        Ok(results.pop())
+
+        result
     }
 
     pub fn create(&self, entity: E, conn: Option<&mut Connection>) -> Result<E> {
@@ -86,32 +114,52 @@ impl<E: Entity> GenericRepository<E> {
             placeholders.join(",")
         );
 
+        let entity_id = entity.id().unwrap_or_else(|| "new".to_string());
+        debug!("[DB] create: table={}, id={}", E::table_name(), entity_id);
+        let start = std::time::Instant::now();
+
         let values = entity.insert_values();
         
-        if let Some(conn_ref) = conn {
+        let result = if let Some(conn_ref) = conn {
             // Use provided connection
             conn_ref.execute(
                 &sql,
                 rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
             )
-            .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
         } else {
             // Get connection from pool if no connection provided
-            let mut pooled_conn = self.pool.get()?;
+            let mut pooled_conn = self.pool.get().map_err(|e| {
+                error!("[DB] Failed to get connection from pool: {}", e);
+                e
+            })?;
             pooled_conn.get_mut().execute(
                 &sql,
                 rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
             )
-            .map_err(|e| anyhow::anyhow!("Failed to create entity: {}", e))?;
-        }
+        };
 
-        Ok(entity)
+        match result {
+            Ok(rows_affected) => {
+                let duration = start.elapsed();
+                debug!("[DB] create: inserted {} row(s) in {:?}", rows_affected, duration);
+                Ok(entity)
+            }
+            Err(e) => {
+                let duration = start.elapsed();
+                error!("[DB] create failed after {:?}: {}", duration, e);
+                Err(anyhow::anyhow!("Failed to create entity: {}", e))
+            }
+        }
     }
 
     pub fn update(&self, entity: &E, conn: Option<&mut Connection>) -> Result<usize> {
         let id = entity
             .id()
-            .ok_or_else(|| anyhow::anyhow!("Entity must have an ID to update"))?;
+            .ok_or_else(|| {
+                let err = anyhow::anyhow!("Entity must have an ID to update");
+                error!("[DB] update: {}", err);
+                err
+            })?;
 
         let columns = E::columns();
         let set_clauses: Vec<String> = columns
@@ -128,24 +176,41 @@ impl<E: Entity> GenericRepository<E> {
             columns.len() + 1
         );
 
-        let mut values = entity.update_values();
-        values.push(Box::new(id));
+        debug!("[DB] update: table={}, id={}", E::table_name(), id);
+        let start = std::time::Instant::now();
 
-        if let Some(conn_ref) = conn {
+        let mut values = entity.update_values();
+        values.push(Box::new(id.clone()));
+
+        let result = if let Some(conn_ref) = conn {
             // Use provided connection
             conn_ref.execute(
                 &sql,
                 rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
             )
-            .map_err(|e| anyhow::anyhow!("Failed to update entity: {}", e))
         } else {
             // Get connection from pool if no connection provided
-            let mut pooled_conn = self.pool.get()?;
+            let mut pooled_conn = self.pool.get().map_err(|e| {
+                error!("[DB] Failed to get connection from pool: {}", e);
+                e
+            })?;
             pooled_conn.get_mut().execute(
                 &sql,
                 rusqlite::params_from_iter(values.iter().map(|v| v.as_ref())),
             )
-            .map_err(|e| anyhow::anyhow!("Failed to update entity: {}", e))
+        };
+
+        match result {
+            Ok(rows_affected) => {
+                let duration = start.elapsed();
+                debug!("[DB] update: updated {} row(s) in {:?}", rows_affected, duration);
+                Ok(rows_affected)
+            }
+            Err(e) => {
+                let duration = start.elapsed();
+                error!("[DB] update failed after {:?}: {}", duration, e);
+                Err(anyhow::anyhow!("Failed to update entity: {}", e))
+            }
         }
     }
     pub fn delete(&self, id: &str, conn: Option<&mut Connection>) -> Result<usize> {
@@ -155,23 +220,40 @@ impl<E: Entity> GenericRepository<E> {
             E::primary_key()
         );
 
+        debug!("[DB] delete: table={}, id={}", E::table_name(), id);
+        let start = std::time::Instant::now();
+
         let params = vec![Box::new(id.to_string()) as Box<dyn ToSql>];
 
-        if let Some(conn_ref) = conn {
+        let result = if let Some(conn_ref) = conn {
             // Use provided connection
             conn_ref.execute(
                 &sql,
                 rusqlite::params_from_iter(params.iter().map(|v| v.as_ref())),
             )
-            .map_err(|e| anyhow::anyhow!("Failed to delete entity: {}", e))
         } else {
             // Get connection from pool if no connection provided
-            let mut pooled_conn = self.pool.get()?;
+            let mut pooled_conn = self.pool.get().map_err(|e| {
+                error!("[DB] Failed to get connection from pool: {}", e);
+                e
+            })?;
             pooled_conn.get_mut().execute(
                 &sql,
                 rusqlite::params_from_iter(params.iter().map(|v| v.as_ref())),
             )
-            .map_err(|e| anyhow::anyhow!("Failed to delete entity: {}", e))
+        };
+
+        match result {
+            Ok(rows_affected) => {
+                let duration = start.elapsed();
+                debug!("[DB] delete: deleted {} row(s) in {:?}", rows_affected, duration);
+                Ok(rows_affected)
+            }
+            Err(e) => {
+                let duration = start.elapsed();
+                error!("[DB] delete failed after {:?}: {}", duration, e);
+                Err(anyhow::anyhow!("Failed to delete entity: {}", e))
+            }
         }
     }
 }
