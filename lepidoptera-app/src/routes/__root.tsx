@@ -7,6 +7,7 @@ import RightMenubar from '../layout/right-menubar';
 import SearchMenubar from '../layout/search-menubar';
 import TopMenubar from '../layout/top-menubar';
 import PanelLayout from '../layout/panel-layout';
+import WelcomeDialog from '../components/welcome-dialog';
 import "@radix-ui/themes/styles.css";
 import '../App.scss';
 
@@ -15,6 +16,8 @@ export const Route = createRootRoute({
 })
 
 function RootLayout() {
+    const [welcomeDialogOpen, setWelcomeDialogOpen] = React.useState(true);
+
     return (
         <ThemeProvider attribute="class" defaultTheme="dark">
             <Theme appearance="dark" accentColor="purple" grayColor="olive" radius="large">
@@ -35,6 +38,10 @@ function RootLayout() {
                     </PanelLayout>
                     {/*<TanStackRouterDevtools />*/}
                 </div>
+                <WelcomeDialog
+                    open={welcomeDialogOpen}
+                    onOpenChange={setWelcomeDialogOpen}
+                />
             </Theme>
         </ThemeProvider>
     );
