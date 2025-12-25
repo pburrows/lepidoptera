@@ -7,3 +7,4 @@ pub mod file_commands;
 pub mod logging;
 pub mod default_kanban_template;
 pub mod person_commands;
+pub mod window_commands;

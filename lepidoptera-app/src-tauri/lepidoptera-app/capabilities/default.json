@@ -1,10 +1,11 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for the main window",
-  "windows": ["main"],
+  "description": "Capability for the main window and dynamically created windows",
+  "windows": ["main", "work-item-*", "window-*"],
   "permissions": [
     "core:default",
+    "core:window:allow-set-title",
     "opener:default",
     "window-state:default",
     "log:default"

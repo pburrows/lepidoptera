@@ -33,9 +33,9 @@ impl WorkItemTypesRepository for SqliteWorkItemTypesRepository {
         
         let work_item_types = conn.query(
             "SELECT id, project_id, created_at, updated_at, is_active, 
-                    name, display_name,
                     allowed_children_type_ids, allowed_statuses, allowed_priorities,
-                    assignment_field_definitions, work_item_details, work_item_fields
+                    assignment_field_definitions, work_item_details, work_item_fields,
+                    name, display_name
              FROM work_item_types 
              WHERE project_id = ?1 AND is_active = 1
              ORDER BY created_at",
@@ -59,23 +59,23 @@ impl WorkItemTypesRepository for SqliteWorkItemTypesRepository {
             work_item_type.project_id.clone(),
             work_item_type.updated_at.clone(),
             work_item_type.is_active,
-            work_item_type.name.clone(),
-            work_item_type.display_name.clone(),
             work_item_type.allowed_children_type_ids.clone(),
             work_item_type.allowed_statuses.clone(),
             work_item_type.allowed_priorities.clone(),
             work_item_type.assignment_field_definitions.clone(),
             work_item_type.work_item_details.clone(),
             work_item_type.work_item_fields.clone(),
+            work_item_type.name.clone(),
+            work_item_type.display_name.clone(),
             id.clone(),
         ];
         
         conn.execute(
             &format!(
                 "UPDATE {} SET project_id = ?1, updated_at = ?2, is_active = ?3, 
-                        name = ?4, display_name = ?5,
-                        allowed_children_type_ids = ?6, allowed_statuses = ?7, allowed_priorities = ?8,
-                        assignment_field_definitions = ?9, work_item_details = ?10, work_item_fields = ?11
+                        allowed_children_type_ids = ?4, allowed_statuses = ?5, allowed_priorities = ?6,
+                        assignment_field_definitions = ?7, work_item_details = ?8, work_item_fields = ?9,
+                        name = ?10, display_name = ?11
                  WHERE id = ?12",
                 WorkItemType::table_name()
             ),

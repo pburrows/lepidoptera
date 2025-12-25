@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 use crate::app_context::AppContext;
-use work_items::models::WorkItemModel;
+use work_items::models::{WorkItemModel, WorkItemTypeModel};
 use tauri::State;
 use log::{debug, error, info};
 
@@ -31,6 +31,40 @@ pub fn create_work_item(
         Ok(result) => {
             let duration = start.elapsed();
             info!("[COMMAND] {} completed successfully in {:?}", command_name, duration);
+            Ok(result)
+        }
+        Err(e) => {
+            let duration = start.elapsed();
+            error!("[COMMAND] {} failed after {:?}: {}", command_name, duration, e);
+            Err(e.to_string())
+        }
+    }
+}
+
+#[tauri::command]
+pub fn get_work_item_types_by_project(
+    state: State<'_, Mutex<Arc<AppContext>>>,
+    project_id: String,
+) -> Result<Vec<WorkItemTypeModel>, String> {
+    let command_name = "get_work_item_types_by_project";
+    debug!("[COMMAND] {} called: project_id={}", command_name, project_id);
+    let start = std::time::Instant::now();
+    
+    let ctx = match state.lock() {
+        Ok(ctx) => ctx,
+        Err(e) => {
+            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
+            return Err("Failed to lock context".to_string());
+        }
+    };
+    
+    let work_items_manager = ctx.work_items.clone();
+    drop(ctx);
+    
+    match work_items_manager.get_work_item_types_by_project(&project_id) {
+        Ok(result) => {
+            let duration = start.elapsed();
+            info!("[COMMAND] {} completed successfully in {:?} (found {} types)", command_name, duration, result.len());
             Ok(result)
         }
         Err(e) => {

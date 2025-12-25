@@ -1,10 +1,11 @@
 use crate::app_context::AppContextBuilder;
-use crate::commands::work_item_commands::create_work_item;
+use crate::commands::work_item_commands::{create_work_item, get_work_item_types_by_project};
 use crate::commands::project_template_commands::apply_project_template;
 use crate::commands::project_commands::{create_project, get_project_setting, set_project_setting, ensure_initial_project, get_project_by_id, update_project};
 use crate::commands::person_commands::ensure_initial_user;
 use crate::commands::attachment_commands::{create_attachment, get_attachment};
 use crate::commands::file_commands::read_file_binary;
+use crate::commands::window_commands::open_new_window;
 use crate::settings::local_settings_store::LocalSettingsStore;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
@@ -53,7 +54,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet, 
-            create_work_item, 
+            create_work_item,
+            get_work_item_types_by_project,
             get_navigation,
             get_projects,
             create_project,
@@ -66,7 +68,8 @@ pub fn run() {
             ensure_initial_user,
             create_attachment,
             get_attachment,
-            read_file_binary])
+            read_file_binary,
+            open_new_window])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
