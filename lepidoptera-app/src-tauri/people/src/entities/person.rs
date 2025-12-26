@@ -10,6 +10,8 @@ pub struct Person {
     pub updated_at: Option<String>,
     pub display_name: String,
     pub is_active: bool,
+    // todo: add created_by and updated_by
+    // todo: add avatar attachment_id
 }
 
 impl Entity for Person {

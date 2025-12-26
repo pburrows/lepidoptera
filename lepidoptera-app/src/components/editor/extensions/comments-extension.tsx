@@ -1,7 +1,7 @@
 /**
  * Comments Extension for Tiptap
  * 
- * This extension enables inline comments functionality.
+ * This extension enables inline conversations functionality.
  * Currently a placeholder - can be extended with:
  * - Comment markers/decorations
  * - Comment sidebar/panel
@@ -16,7 +16,7 @@
 //
 // export interface CommentsOptions {
 //   /**
-//    * Whether comments are enabled
+//    * Whether conversations are enabled
 //    */
 //   enabled: boolean;
 //
@@ -31,7 +31,7 @@
 //   onRemoveComment?: (commentId: string) => void;
 //
 //   /**
-//    * Get comments for a given range
+//    * Get conversations for a given range
 //    */
 //   getComments?: (from: number, to: number) => Array<{ id: string; text: string; author: string }>;
 // }
@@ -47,7 +47,7 @@
 //  * 5. Add user authentication/authorization
 //  */
 // export const CommentsExtension = Extension.create<CommentsOptions>({
-//   name: 'comments',
+//   name: 'conversations',
 //
 //   addOptions() {
 //     return {
@@ -61,13 +61,13 @@
 //   addProseMirrorPlugins() {
 //     return [
 //       new Plugin({
-//         key: new PluginKey('comments'),
+//         key: new PluginKey('conversations'),
 //         state: {
 //           init() {
 //             return DecorationSet.empty;
 //           },
 //           apply(tr, set) {
-//             // TODO: Apply comment decorations based on stored comments
+//             // TODO: Apply comment decorations based on stored conversations
 //             return set;
 //           },
 //         },

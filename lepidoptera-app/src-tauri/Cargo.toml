@@ -5,7 +5,7 @@ members = [
     "shared",
     "work_items",
     "projects",
-    "people", "documents", "attachment_store", "sync",
+    "people", "documents", "attachment_store", "sync", "search", "conversations",
 ]
 resolver = "2"
 

@@ -19,7 +19,7 @@ import RichTextEditorToolbar from './rich-text-editor-toolbar';
  * - Task lists
  * - Code blocks
  * - Blockquotes
- * - Inline comments (when enabled)
+ * - Inline conversations (when enabled)
  * - Radix UI theme integration
  * 
  * Note: Content is stored and edited as HTML. Markdown export will be

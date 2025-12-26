@@ -5,13 +5,14 @@ use db::to_sql_vec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
-
     pub id: Option<String>,
     pub created_at: String,
     pub updated_at: Option<String>,
     pub name: String,
     pub description: Option<String>,
     pub is_active: bool,
+    pub created_by: String, 
+    pub updated_by: Option<String>, 
 }
 
 impl Entity for Project {
@@ -20,7 +21,7 @@ impl Entity for Project {
     }
 
     fn columns() -> &'static [&'static str] {
-        &["id", "created_at", "updated_at", "name", "description", "is_active"]
+        &["id", "created_at", "updated_at", "name", "description", "is_active", "created_by", "updated_by"]
     }
 
     fn from_row(row: &Row) -> rusqlite::Result<Self> {
@@ -31,6 +32,8 @@ impl Entity for Project {
             name: row.get(3)?,
             description: row.get(4)?,
             is_active: row.get(5)?,
+            created_by: row.get(6)?,
+            updated_by: row.get(7)?,
         })
     }
 
@@ -50,6 +53,8 @@ impl Entity for Project {
             self.name.clone(),
             self.description.clone(),
             self.is_active,
+            self.created_by.clone(),
+            self.updated_by.clone(),
         ]
     }
 
@@ -61,6 +66,8 @@ impl Entity for Project {
             self.name.clone(),
             self.description.clone(),
             self.is_active,
+            self.created_by.clone(),
+            self.updated_by.clone(),
         ]
     }
 

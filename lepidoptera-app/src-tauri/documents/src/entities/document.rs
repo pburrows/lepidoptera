@@ -14,6 +14,7 @@ pub struct Document {
     pub parent_id: Option<String>,
     pub slug: String,
     pub is_active: bool,
+    // todo: make documents have a variety of scopes: project, workspace, team, conversation, person (private)
 }
 
 impl Entity for Document {

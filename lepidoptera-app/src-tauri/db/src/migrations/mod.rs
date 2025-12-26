@@ -21,6 +21,12 @@ mod m0020_change_sequential_number_to_text;
 mod m0021_create_work_item_relationships;
 mod m0022_add_work_item_types_name_display_name;
 mod m0023_unique_sequence_prefix;
+mod m0024_add_projects_created_by_updated_by;
+mod m0025_create_conversations;
+mod m0026_create_messages;
+mod m0027_create_read_records;
+mod m0028_create_tags;
+mod m0029_create_tagged_items;
 
 use rusqlite_migration::{Migrations};
 
@@ -49,6 +55,12 @@ pub fn get_migrations() -> Migrations<'static> {
         m0021_create_work_item_relationships::migration(),
         m0022_add_work_item_types_name_display_name::migration(),
         m0023_unique_sequence_prefix::migration(),
+        m0024_add_projects_created_by_updated_by::migration(),
+        m0025_create_conversations::migration(),
+        m0026_create_messages::migration(),
+        m0027_create_read_records::migration(),
+        m0028_create_tags::migration(),
+        m0029_create_tagged_items::migration(),
       ])
 }
 

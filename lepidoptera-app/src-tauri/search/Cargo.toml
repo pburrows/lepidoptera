@@ -1,15 +1,17 @@
 [package]
-name = "people"
+name = "search"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 
 [dependencies]
 serde = { workspace = true }
+serde_json = { workspace = true }
 anyhow = { workspace = true }
 rusqlite = { workspace = true }
+chrono = { workspace = true }
+ulid = {workspace = true}
 db = { path = "../db" }
-shared = {path = "../shared"}
 
 [lints.rust]
 unused_variables = "allow"

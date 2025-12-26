@@ -35,6 +35,8 @@ pub fn create_project(
         name: project.name.clone(),
         description: project.description.clone(),
         is_active: project.is_active.unwrap_or(true),
+        created_by: "".to_string(), // todo: fill in created by correctly
+        updated_by: None,
     };
 
     match projects_manager.create_project(new_project) {
@@ -170,6 +172,8 @@ pub fn ensure_initial_project(
         name: "Main".to_string(),
         description: Some("Default Lepidoptera project.".to_string()),
         is_active: true,
+        created_by: "".to_string(), // todo: fill in created_by correctly
+        updated_by: None,
     };
     
     let created_project = match projects_manager.create_project(default_project) {

@@ -43,7 +43,7 @@ export interface RichTextEditorProps {
   showToolbar?: boolean;
   
   /**
-   * Enable inline comments feature (requires comments extension)
+   * Enable inline conversations feature (requires conversations extension)
    * @default false
    */
   enableComments?: boolean;

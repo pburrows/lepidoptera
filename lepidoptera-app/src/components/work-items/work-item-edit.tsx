@@ -15,7 +15,7 @@ import { FaXmark } from "react-icons/fa6";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {RichTextEditor} from "../editor";
-import type { AllowedStatus, AllowedPriority, AssignmentFieldDefinition } from "../../data/templates/types";
+import type { AllowedStatus, AllowedPriority, AssignmentFieldDefinition, WorkItemField } from "../../data/templates/types";
 
 interface WorkItemType {
     id: string | null;
@@ -26,6 +26,7 @@ interface WorkItemType {
     allowed_statuses: AllowedStatus[];
     allowed_priorities: AllowedPriority[];
     assignment_field_definitions: AssignmentFieldDefinition[];
+    work_item_fields: WorkItemField[];
 }
 
 export interface WorkItemData {
@@ -35,7 +36,8 @@ export interface WorkItemData {
     priority: string;
     status: string;
     assignmentFields: Record<string, string>; // Map of assignment field ID to value
-    project: string;
+    customFields: Record<string, any>; // Map of custom field ID to value
+    // project: string;
     labels: string[];
     dueDate: string;
 }
@@ -54,6 +56,9 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
         handleSubmit,
         setValue,
         watch,
+        trigger,
+        reset,
+        getValues,
         formState: { errors },
     } = useForm<WorkItemData>({
         defaultValues: {
@@ -63,7 +68,8 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
             priority: workItem?.priority || "",
             status: workItem?.status || "",
             assignmentFields: workItem?.assignmentFields || {},
-            project: workItem?.project || "",
+            customFields: workItem?.customFields || {},
+            // project: workItem?.project || "",
             labels: workItem?.labels || [],
             dueDate: workItem?.dueDate || "",
         },
@@ -76,6 +82,7 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
     const watchedLabels = watch("labels");
     const watchedType = watch("type");
     const watchedAssignmentFields = watch("assignmentFields");
+    const watchedCustomFields = watch("customFields");
     
     // Get the currently selected work item type
     const selectedType = workItemTypes.find(
@@ -86,6 +93,7 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
     const allowedPriorities = selectedType?.allowed_priorities || [];
     const allowedStatuses = selectedType?.allowed_statuses || [];
     const assignmentFieldDefinitions = selectedType?.assignment_field_definitions || [];
+    const workItemFields = selectedType?.work_item_fields || [];
     
     // Update window title when project is loaded
     useEffect(() => {
@@ -186,26 +194,57 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
         
         // Initialize assignment fields with default values if they don't exist
         const assignmentFields = watchedAssignmentFields || {};
-        const updatedFields = { ...assignmentFields };
-        let hasChanges = false;
+        const updatedAssignmentFields = { ...assignmentFields };
+        let hasAssignmentChanges = false;
         
         assignmentFieldDefinitions.forEach(fieldDef => {
-            if (!(fieldDef.id in updatedFields)) {
-                updatedFields[fieldDef.id] = fieldDef.default_value || "";
-                hasChanges = true;
+            if (!(fieldDef.id in updatedAssignmentFields)) {
+                updatedAssignmentFields[fieldDef.id] = fieldDef.default_value || "";
+                hasAssignmentChanges = true;
             }
         });
         
         // Remove assignment fields that are no longer in the definition
-        Object.keys(updatedFields).forEach(fieldId => {
+        Object.keys(updatedAssignmentFields).forEach(fieldId => {
             if (!assignmentFieldDefinitions.some(f => f.id === fieldId)) {
-                delete updatedFields[fieldId];
-                hasChanges = true;
+                delete updatedAssignmentFields[fieldId];
+                hasAssignmentChanges = true;
             }
         });
         
-        if (hasChanges) {
-            setValue("assignmentFields", updatedFields, { shouldValidate: false });
+        if (hasAssignmentChanges) {
+            setValue("assignmentFields", updatedAssignmentFields, { shouldValidate: false });
+        }
+
+        // Initialize custom fields with default values if they don't exist
+        const customFields = watchedCustomFields || {};
+        const updatedCustomFields = { ...customFields };
+        let hasCustomChanges = false;
+        
+        workItemFields.forEach(fieldDef => {
+            if (!(fieldDef.id in updatedCustomFields)) {
+                // Set default value based on field type
+                if (fieldDef.default_value !== undefined && fieldDef.default_value !== null) {
+                    // Use the default value as-is (could be string, number, etc.)
+                    updatedCustomFields[fieldDef.id] = fieldDef.default_value;
+                } else {
+                    // Set empty default based on field type
+                    updatedCustomFields[fieldDef.id] = "";
+                }
+                hasCustomChanges = true;
+            }
+        });
+        
+        // Remove custom fields that are no longer in the definition
+        Object.keys(updatedCustomFields).forEach(fieldId => {
+            if (!workItemFields.some(f => f.id === fieldId)) {
+                delete updatedCustomFields[fieldId];
+                hasCustomChanges = true;
+            }
+        });
+        
+        if (hasCustomChanges) {
+            setValue("customFields", updatedCustomFields, { shouldValidate: false });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchedType, selectedType]);
@@ -221,14 +260,109 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
         setValue("labels", watchedLabels.filter((label) => label !== labelToRemove));
     };
 
+    // Helper function to build validation rules for custom fields
+    const buildFieldValidationRules = (field: WorkItemField) => {
+        const rules: any = {
+            required: field.required ? `${field.label} is required` : false,
+        };
+
+        if (field.validation) {
+            if (field.validation.min !== undefined) {
+                rules.min = {
+                    value: field.validation.min,
+                    message: `${field.label} must be at least ${field.validation.min}`,
+                };
+            }
+            if (field.validation.max !== undefined) {
+                rules.max = {
+                    value: field.validation.max,
+                    message: `${field.label} must be at most ${field.validation.max}`,
+                };
+            }
+            if (field.validation.min_length !== undefined) {
+                rules.minLength = {
+                    value: field.validation.min_length,
+                    message: `${field.label} must be at least ${field.validation.min_length} characters`,
+                };
+            }
+            if (field.validation.max_length !== undefined) {
+                rules.maxLength = {
+                    value: field.validation.max_length,
+                    message: `${field.label} must be at most ${field.validation.max_length} characters`,
+                };
+            }
+            if (field.validation.pattern) {
+                rules.pattern = {
+                    value: new RegExp(field.validation.pattern),
+                    message: `${field.label} format is invalid`,
+                };
+            }
+        }
+
+        return rules;
+    };
+
     const onSubmit = (data: WorkItemData) => {
         onSave?.(data);
+    };
+
+    const handleSaveAndAddAnother = async () => {
+        const isValid = await trigger();
+        if (isValid) {
+            const formData = getValues();
+            // Save the current form data
+            await onSubmit(formData);
+            // Reset form after successful save, keeping type, priority, status, and assignmentFields
+            reset({
+                ...formData,
+                title: "",
+                description: "",
+                labels: [],
+                dueDate: "",
+                customFields: {},
+            });
+        }
+    };
+
+    const handleMove = () => {
+        // TODO: Implement move functionality
+        console.log("Move clicked");
+    };
+
+    const handleStatusChange = () => {
+        // TODO: Implement status change functionality
+        console.log("Status change clicked");
     };
 
     return (
         <Box p="4">
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Flex direction="column" gap="4">
+                    {/* Toolbar */}
+                    <Flex justify="between" align="center" gap="3" style={{ paddingBottom: "8px", borderBottom: "1px solid var(--gray-6)" }}>
+                        <Flex gap="2">
+                            <Button type="submit" size="2">
+                                Save
+                            </Button>
+                            <Button type="button" variant="soft" onClick={handleSaveAndAddAnother} size="2">
+                                Save and Add Another
+                            </Button>
+                        </Flex>
+                        <Flex gap="2">
+                            <Button type="button" variant="soft" onClick={handleMove} size="2">
+                                Move
+                            </Button>
+                            <Button type="button" variant="soft" onClick={handleStatusChange} size="2">
+                                Status
+                            </Button>
+                            {onCancel && (
+                                <Button type="button" variant="soft" onClick={onCancel} size="2">
+                                    Cancel
+                                </Button>
+                            )}
+                        </Flex>
+                    </Flex>
+
                     {/* Title Section */}
                     <Flex align="start" gap="4">
                         <Box style={{ width: "120px", flexShrink: 0, paddingTop: "8px" }}>
@@ -284,9 +418,9 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
 
                     <Separator size="4" />
 
-                    {/* Main Content Grid */}
-                    <Grid columns={{ initial: "1", md: "2" }} gap="4">
-                        {/* Left Column - Main Fields */}
+                    {/* Main Content */}
+                    <Grid columns="1" gap="4">
+                        {/* Main Fields Section */}
                         <Flex direction="column" gap="4">
                             {/* Description */}
                             <Flex align="start" gap="4">
@@ -376,7 +510,7 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
                             </Flex>
                         </Flex>
 
-                        {/* Right Column - Metadata */}
+                        {/* Metadata Section */}
                         <Flex direction="column" gap="4">
                             {/* Priority */}
                             <Flex align="start" gap="4">
@@ -475,7 +609,208 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
                                 </Flex>
                             ))}
 
-                            {/* Project */}
+                            {/* Custom Fields */}
+                            {workItemFields.map((fieldDef) => {
+                                const fieldName = `customFields.${fieldDef.id}` as const;
+                                const fieldError = errors.customFields?.[fieldDef.id];
+                                const validationRules = buildFieldValidationRules(fieldDef);
+                                
+                                return (
+                                    <Flex key={fieldDef.id} align="start" gap="4">
+                                        <Box style={{ width: "120px", flexShrink: 0, paddingTop: "8px" }}>
+                                            <Text size="2" weight="medium" as="label" htmlFor={`custom-${fieldDef.id}`}>
+                                                {fieldDef.label}
+                                                {fieldDef.required && " *"}
+                                            </Text>
+                                        </Box>
+                                        <Box style={{ flex: 1 }}>
+                                            {(() => {
+                                                switch (fieldDef.field_type) {
+                                                    case "text":
+                                                        return (
+                                                            <Controller
+                                                                name={fieldName}
+                                                                control={control}
+                                                                rules={validationRules}
+                                                                render={({ field: controllerField, fieldState }) => (
+                                                                    <TextField.Root
+                                                                        id={`custom-${fieldDef.id}`}
+                                                                        placeholder={`Enter ${fieldDef.label.toLowerCase()}`}
+                                                                        value={controllerField.value || ""}
+                                                                        onChange={(e) => controllerField.onChange(e.target.value)}
+                                                                        size="3"
+                                                                        color={fieldState.error ? "red" : undefined}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        );
+
+                                                    case "textarea":
+                                                        return (
+                                                            <Controller
+                                                                name={fieldName}
+                                                                control={control}
+                                                                rules={validationRules}
+                                                                render={({ field: controllerField, fieldState }) => (
+                                                                    <TextArea
+                                                                        id={`custom-${fieldDef.id}`}
+                                                                        placeholder={`Enter ${fieldDef.label.toLowerCase()}`}
+                                                                        value={controllerField.value || ""}
+                                                                        onChange={(e) => controllerField.onChange(e.target.value)}
+                                                                        rows={4}
+                                                                        size="3"
+                                                                        color={fieldState.error ? "red" : undefined}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        );
+
+                                                    case "number":
+                                                    case "integer":
+                                                        return (
+                                                            <Controller
+                                                                name={fieldName}
+                                                                control={control}
+                                                                rules={validationRules}
+                                                                render={({ field: controllerField, fieldState }) => (
+                                                                    <TextField.Root
+                                                                        id={`custom-${fieldDef.id}`}
+                                                                        type="number"
+                                                                        placeholder={`Enter ${fieldDef.label.toLowerCase()}`}
+                                                                        value={controllerField.value !== undefined && controllerField.value !== null ? String(controllerField.value) : ""}
+                                                                        onChange={(e) => {
+                                                                            const value = e.target.value;
+                                                                            // Allow empty string or valid number
+                                                                            if (value === "") {
+                                                                                controllerField.onChange("");
+                                                                            } else if (!isNaN(Number(value))) {
+                                                                                controllerField.onChange(fieldDef.field_type === "integer" ? parseInt(value, 10) : Number(value));
+                                                                            }
+                                                                        }}
+                                                                        size="3"
+                                                                        color={fieldState.error ? "red" : undefined}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        );
+
+                                                    case "date":
+                                                    case "datetime":
+                                                        return (
+                                                            <Controller
+                                                                name={fieldName}
+                                                                control={control}
+                                                                rules={validationRules}
+                                                                render={({ field: controllerField, fieldState }) => (
+                                                                    <TextField.Root
+                                                                        id={`custom-${fieldDef.id}`}
+                                                                        type={fieldDef.field_type === "datetime" ? "datetime-local" : "date"}
+                                                                        placeholder={`Select ${fieldDef.label.toLowerCase()}`}
+                                                                        value={controllerField.value || ""}
+                                                                        onChange={(e) => controllerField.onChange(e.target.value)}
+                                                                        size="3"
+                                                                        color={fieldState.error ? "red" : undefined}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        );
+
+                                                    case "select":
+                                                        return (
+                                                            <Controller
+                                                                name={fieldName}
+                                                                control={control}
+                                                                rules={validationRules}
+                                                                render={({ field: controllerField, fieldState }) => (
+                                                                    <Select.Root
+                                                                        value={controllerField.value || undefined}
+                                                                        onValueChange={(value) => controllerField.onChange(value || "")}
+                                                                    >
+                                                                        <Select.Trigger 
+                                                                            id={`custom-${fieldDef.id}`} 
+                                                                            placeholder={`Select ${fieldDef.label.toLowerCase()}`}
+                                                                            color={fieldState.error ? "red" : undefined}
+                                                                        />
+                                                                        <Select.Content>
+                                                                            {fieldDef.options && fieldDef.options.length > 0 ? (
+                                                                                fieldDef.options.map((option) => (
+                                                                                    <Select.Item key={option.value} value={option.value}>
+                                                                                        {option.label}
+                                                                                    </Select.Item>
+                                                                                ))
+                                                                            ) : (
+                                                                                <Select.Item value="" disabled>No options available</Select.Item>
+                                                                            )}
+                                                                        </Select.Content>
+                                                                    </Select.Root>
+                                                                )}
+                                                            />
+                                                        );
+
+                                                    case "radio":
+                                                        return (
+                                                            <Controller
+                                                                name={fieldName}
+                                                                control={control}
+                                                                rules={validationRules}
+                                                                render={({ field: controllerField, fieldState }) => (
+                                                                    <Flex direction="column" gap="2">
+                                                                        {fieldDef.options && fieldDef.options.length > 0 ? (
+                                                                            fieldDef.options.map((option) => (
+                                                                                <Flex key={option.value} align="center" gap="2">
+                                                                                    <input
+                                                                                        type="radio"
+                                                                                        id={`custom-${fieldDef.id}-${option.value}`}
+                                                                                        name={`custom-${fieldDef.id}`}
+                                                                                        value={option.value}
+                                                                                        checked={controllerField.value === option.value}
+                                                                                        onChange={(e) => controllerField.onChange(e.target.value)}
+                                                                                    />
+                                                                                    <Text size="2" as="label" htmlFor={`custom-${fieldDef.id}-${option.value}`}>
+                                                                                        {option.label}
+                                                                                    </Text>
+                                                                                </Flex>
+                                                                            ))
+                                                                        ) : (
+                                                                            <Text size="2" color="gray">No options available</Text>
+                                                                        )}
+                                                                    </Flex>
+                                                                )}
+                                                            />
+                                                        );
+
+                                                    default:
+                                                        // Fallback to text input for unknown field types
+                                                        return (
+                                                            <Controller
+                                                                name={fieldName}
+                                                                control={control}
+                                                                rules={validationRules}
+                                                                render={({ field: controllerField, fieldState }) => (
+                                                                    <TextField.Root
+                                                                        id={`custom-${fieldDef.id}`}
+                                                                        placeholder={`Enter ${fieldDef.label.toLowerCase()}`}
+                                                                        value={controllerField.value || ""}
+                                                                        onChange={(e) => controllerField.onChange(e.target.value)}
+                                                                        size="3"
+                                                                        color={fieldState.error ? "red" : undefined}
+                                                                    />
+                                                                )}
+                                                            />
+                                                        );
+                                                }
+                                            })()}
+                                            {fieldError && (
+                                                <Text size="1" color="red" mt="1" as="p">
+                                                    {fieldError.message as string}
+                                                </Text>
+                                            )}
+                                        </Box>
+                                    </Flex>
+                                );
+                            })}
+
+                            {/* Project
                             <Flex align="start" gap="4">
                                 <Box style={{ width: "120px", flexShrink: 0, paddingTop: "8px" }}>
                                     <Text size="2" weight="medium" as="label" htmlFor="project">
@@ -501,7 +836,7 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
                                         )}
                                     />
                                 </Box>
-                            </Flex>
+                            </Flex> */}
 
                             {/* Due Date */}
                             <Flex align="start" gap="4">
@@ -521,20 +856,6 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
                             </Flex>
                         </Flex>
                     </Grid>
-
-                    <Separator size="4" />
-
-                    {/* Action Buttons */}
-                    <Flex justify="end" gap="3">
-                        {onCancel && (
-                            <Button type="button" variant="soft" onClick={onCancel} size="3">
-                                Cancel
-                            </Button>
-                        )}
-                        <Button type="submit" size="3">
-                            {workItem ? "Update Work Item" : "Create Work Item"}
-                        </Button>
-                    </Flex>
                 </Flex>
             </form>
         </Box>

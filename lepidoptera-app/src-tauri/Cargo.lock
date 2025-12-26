@@ -591,6 +591,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "conversations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "db",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "shared",
+ "ulid",
+]
+
+[[package]]
 name = "convert_case"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2718,6 +2732,7 @@ dependencies = [
  "db",
  "rusqlite",
  "serde",
+ "shared",
 ]
 
 [[package]]
@@ -3493,6 +3508,19 @@ name = "seahash"
 version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
+
+[[package]]
+name = "search"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "db",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "ulid",
+]
 
 [[package]]
 name = "selectors"
