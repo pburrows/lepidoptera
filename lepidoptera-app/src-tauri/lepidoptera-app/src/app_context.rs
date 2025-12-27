@@ -18,6 +18,7 @@ use attachment_store::attachment_ports::AttachmentsManager;
 use attachment_store::attachments_manager::manager::SqliteAttachmentsManager;
 use people::people_ports::PersonManager;
 use people::people_manager::manager::SqlitePeopleManager;
+use sync::entities::LocalMachine;
 use crate::settings::settings_store::SettingsStore;
 
 pub struct AppContext {
@@ -28,6 +29,7 @@ pub struct AppContext {
     pub attachments: Arc<dyn AttachmentsManager>,
     pub people: Arc<dyn PersonManager>,
     pub local_settings: LocalSettingsStore,
+    pub local_machine: LocalMachine,
 }
 
 pub struct AppContextBuilder {
@@ -80,6 +82,7 @@ impl AppContextBuilder {
             attachments: attachments_manager,
             people: people_manager,
             local_settings: self.settings,
+            local_machine,
         })
     }
 }

@@ -9,6 +9,7 @@ pub fn migration() -> M<'static> {
             created_by TEXT NOT NULL,
             updated_by TEXT,
             is_archived INTEGER NOT NULL DEFAULT 0,
+            is_public INTEGER NOT NULL DEFAULT 0,
             name TEXT NOT NULL,
             description TEXT,
             conversation_scope TEXT NOT NULL,

@@ -26,6 +26,7 @@ impl Entity for WorkItemNumberRange {
 
     fn columns() -> &'static [&'static str] {
         &[
+            "id",
             "project_id",
             "machine_id",
             "range_start",
@@ -59,6 +60,7 @@ impl Entity for WorkItemNumberRange {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(),
             self.project_id.clone(),
             self.machine_id.clone(),
             self.range_start,
@@ -71,12 +73,13 @@ impl Entity for WorkItemNumberRange {
 
     fn update_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
-            self.project_id.clone(),
-            self.machine_id.clone(),
+            self.id.clone().unwrap_or_default(), // id (won't actually be updated, but required for SQL generation)
+            self.project_id.clone(), // project_id (won't actually be updated, but required for SQL generation)
+            self.machine_id.clone(), // machine_id (won't actually be updated, but required for SQL generation)
             self.range_start,
             self.range_end,
             self.current_number,
-            self.created_at.clone(),
+            self.created_at.clone(), // created_at (won't actually be updated, but required for SQL generation)
             self.updated_at.clone(),
         ]
     }

@@ -26,6 +26,7 @@ impl Entity for WorkItem {
 
     fn columns() -> &'static [&'static str] {
         &[
+            "id",
             "title",
             "description",
             "status",
@@ -67,6 +68,7 @@ impl Entity for WorkItem {
 
     fn insert_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(),
             self.title.clone(),
             self.description.clone(),
             self.status.clone(),
@@ -83,16 +85,17 @@ impl Entity for WorkItem {
 
     fn update_values(&self) -> Vec<Box<dyn ToSql>> {
         to_sql_vec![
+            self.id.clone().unwrap_or_default(), // id (won't actually be updated, but required for SQL generation)
             self.title.clone(),
             self.description.clone(),
             self.status.clone(),
-            self.created_at.clone(),
+            self.created_at.clone(), // created_at (won't actually be updated, but required for SQL generation)
             self.updated_at.clone(),
             self.priority,
-            self.created_by.clone(),
+            self.created_by.clone(), // created_by (won't actually be updated, but required for SQL generation)
             self.assigned_to.clone(),
-            self.project_id.clone(),
-            self.type_id.clone(),
+            self.project_id.clone(), // project_id (won't actually be updated, but required for SQL generation)
+            self.type_id.clone(), // type_id (won't actually be updated, but required for SQL generation)
             self.sequential_number.clone(),
         ]
     }
