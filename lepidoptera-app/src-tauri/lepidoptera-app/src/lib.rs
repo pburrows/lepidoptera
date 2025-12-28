@@ -1,8 +1,8 @@
 use crate::app_context::AppContextBuilder;
-use crate::commands::work_item_commands::{create_work_item, get_work_item_types_by_project};
+use crate::commands::work_item_commands::{create_work_item, get_work_item_types_by_project, list_work_items};
 use crate::commands::project_template_commands::apply_project_template;
 use crate::commands::project_commands::{create_project, get_project_setting, set_project_setting, ensure_initial_project, get_project_by_id, update_project};
-use crate::commands::person_commands::ensure_initial_user;
+use crate::commands::person_commands::{ensure_initial_user, get_persons};
 use crate::commands::attachment_commands::{create_attachment, get_attachment};
 use crate::commands::file_commands::read_file_binary;
 use crate::commands::window_commands::open_new_window;
@@ -56,6 +56,7 @@ pub fn run() {
             greet, 
             create_work_item,
             get_work_item_types_by_project,
+            list_work_items,
             get_navigation,
             get_projects,
             create_project,
@@ -66,6 +67,7 @@ pub fn run() {
             apply_project_template,
             ensure_initial_project,
             ensure_initial_user,
+            get_persons,
             create_attachment,
             get_attachment,
             read_file_binary,

@@ -115,6 +115,8 @@ pub struct WorkItemListItem {
     pub project_id: String,
     /// Work item type ID
     pub type_id: String,
+    /// Sequential number for display (e.g., M-0003, M-1045, etc.)
+    pub sequential_number: Option<String>,
     /// Hydrated status details from WorkItemType
     pub status_detail: Option<AllowedStatus>,
     /// Hydrated priority details from WorkItemType

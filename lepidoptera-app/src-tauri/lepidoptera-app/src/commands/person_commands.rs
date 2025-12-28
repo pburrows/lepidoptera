@@ -65,3 +65,36 @@ pub fn ensure_initial_user(
     Ok(Some(created_person))
 }
 
+#[tauri::command]
+pub fn get_persons(
+    state: State<'_, Mutex<Arc<AppContext>>>,
+) -> Result<Vec<Person>, String> {
+    let command_name = "get_persons";
+    debug!("[COMMAND] {} called", command_name);
+    let start = std::time::Instant::now();
+    
+    let ctx = match state.lock() {
+        Ok(ctx) => ctx,
+        Err(e) => {
+            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
+            return Err("Failed to lock context".to_string());
+        }
+    };
+    
+    let people_manager = ctx.people.clone();
+    drop(ctx);
+    
+    match people_manager.get_persons() {
+        Ok(result) => {
+            let duration = start.elapsed();
+            info!("[COMMAND] {} completed successfully in {:?} (found {} persons)", command_name, duration, result.len());
+            Ok(result)
+        }
+        Err(e) => {
+            let duration = start.elapsed();
+            error!("[COMMAND] {} failed after {:?}: {}", command_name, duration, e);
+            Err(e.to_string())
+        }
+    }
+}
+

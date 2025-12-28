@@ -1,11 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import WorkItemList from '../../components/work-items/work-item-list'
 
-export const Route = createFileRoute('/work-items/backlog')({
-  component: WorkItemBacklog,
+export const Route = createFileRoute('/work-items/list')({
+  component: WorkItemListPage,
 })
 
-function WorkItemBacklog() {
+function WorkItemListPage() {
   return <WorkItemList />
 }
-

@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use tauri::State;
 use documents::docuent_ports::NavigationDocument;
-use work_items::entities::WorkItem;
+use work_items::models::{WorkItemTypeModel, WorkItemListRequest, WorkItemQuery, WorkItemListItem};
 use projects::entities::Project;
 use log::{debug, error, info};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NavigationItem {
@@ -48,14 +49,6 @@ pub fn get_navigation(
         }
     };
 
-    let work_items = match get_all_work_items(&ctx) {
-        Ok(items) => items,
-        Err(e) => {
-            error!("[COMMAND] {} failed to get work_items: {}", command_name, e);
-            return Err(format!("Failed to get work_items: {}", e));
-        }
-    };
-
     let documents = match get_all_documents(&ctx, &project_id) {
         Ok(docs) => docs,
         Err(e) => {
@@ -67,7 +60,11 @@ pub fn get_navigation(
     let mut sections = vec![];
 
     build_top_level_sections(&mut sections);
-    build_work_item_section(&mut sections, &work_items);
+    build_conversation_section(&mut sections);
+    if let Err(e) = build_work_item_section(&mut sections, &ctx, &project_id) {
+        error!("[COMMAND] {} failed to build work item section: {}", command_name, e);
+        // Continue execution - don't fail the entire navigation if work items fail
+    }
     build_document_section(&mut sections, &documents);
 
     let duration = start.elapsed();
@@ -75,36 +72,182 @@ pub fn get_navigation(
           command_name, duration, sections.len(), documents.len());
     Ok(NavigationResponse { sections })
 }
-
-fn build_work_item_section(sections: &mut Vec<NavigationSection>, work_items: &Vec<WorkItem>) {
-    let backlog_items = Vec::new();
-    let sprint_items = Vec::new();
-
-    let backlog_item = NavigationItem {
-        id: "backlog".to_string(),
-        label: "Backlog".to_string(),
-        icon: Some("FaList".to_string()),
-        children: Some(backlog_items),
+fn build_conversation_section(sections: &mut Vec<NavigationSection>) {
+    // let conversations = Vec::new();
+    let general_item = NavigationItem {
+        id: "conv-general".to_string(),
+        label: "General".to_string(),
+        icon: None, //Some("FaList".to_string()),
+        children: None,
         show_hover_menu: None,
-        unread: None,
+        unread: Some(true),
     };
-
-    let sprints_item = NavigationItem {
-        id: "sprints".to_string(),
-        label: "Sprints".to_string(),
-        icon: Some("FaRocket".to_string()),
-        children: Some(sprint_items),
-        show_hover_menu: None,
-        unread: None,
-    };
-
     sections.push(NavigationSection {
-        id: "work_items".to_string(),
-        label: "Work Items".to_string(),
-        icon: Some("FaList".to_string()),
-        items: vec![backlog_item, sprints_item],
+        id: "conversations".to_string(),
+        label: "Conversations".to_string(),
+        icon: Some("FaComment".to_string()),
+        items: vec![general_item],
         spacing_before: Some(true),
     })
+}
+
+fn build_work_item_section(
+    sections: &mut Vec<NavigationSection>,
+    ctx: &AppContext,
+    project_id: &str,
+) -> Result<(), String> {
+    // Get all work item types for the project
+    let work_item_types = ctx.work_items.get_work_item_types_by_project(project_id)
+        .map_err(|e| format!("Failed to get work item types: {}", e))?;
+
+    if work_item_types.is_empty() {
+        // No work item types configured, skip this section
+        return Ok(());
+    }
+
+    // Build a set of all type IDs that appear as children in ANY type's allowed_children_type_ids
+    // We check ALL types (not just active) to properly determine parent-child relationships
+    let mut child_type_ids: HashSet<String> = HashSet::new();
+    for work_item_type in &work_item_types {
+        for child_id in &work_item_type.allowed_children_type_ids {
+            child_type_ids.insert(child_id.clone());
+        }
+    }
+
+    // Filter to only active types for display
+    let active_types: Vec<&WorkItemTypeModel> = work_item_types
+        .iter()
+        .filter(|t| t.is_active)
+        .collect();
+
+    // Find top-level types: active types that are not in any type's allowed_children_type_ids
+    let top_level_types: Vec<&WorkItemTypeModel> = active_types
+        .iter()
+        .filter(|work_item_type| {
+            work_item_type.id.as_ref()
+                .map(|id| !child_type_ids.contains(id))
+                .unwrap_or(false)
+        })
+        .copied()
+        .collect();
+
+    // Create a section for each top-level type
+    for work_item_type in top_level_types {
+        let type_id = work_item_type.id.as_ref()
+            .ok_or_else(|| "Work item type missing ID".to_string())?;
+
+        // Get work items of this type
+        let query = WorkItemQuery {
+            project_id: project_id.to_string(),
+            type_id: Some(type_id.clone()),
+            statuses: None,
+            priority: None,
+            priority_min: None,
+            priority_max: None,
+            type_ids: None,
+            assigned_to: None,
+            created_by: None,
+            title_contains: None,
+            sequence_numbers: None,
+            field_value_queries: None,
+            page: None,
+            page_size: None,
+            limit: None,
+            offset: None,
+            sort_by: None,
+            sort_direction: None,
+        };
+
+        let request = WorkItemListRequest {
+            query,
+            include_fields: None,
+        };
+
+        let work_items_response = ctx.work_items.list_work_items(request)
+            .map_err(|e| format!("Failed to list work items for type {}: {}", type_id, e))?;
+
+        // Convert work items to navigation items, or show default if empty
+        let nav_items: Vec<NavigationItem> = if work_items_response.items.is_empty() {
+            vec![NavigationItem {
+                id: format!("create-new-{}", type_id),
+                label: format!("Create the first {}", work_item_type.display_name),
+                icon: None,
+                children: None,
+                show_hover_menu: Some(true),
+                unread: None,
+            }]
+        } else {
+            work_items_response.items
+                .iter()
+                .map(|item| work_item_to_navigation_item(item))
+                .collect()
+        };
+
+        // Use the pluralized type's display_name as the section label
+        let section_id = format!("work-items-section-{}", type_id);
+        let pluralized_label = pluralize(&work_item_type.display_name);
+        sections.push(NavigationSection {
+            id: section_id,
+            label: pluralized_label,
+            icon: work_item_type.work_item_details.icon.clone(),
+            items: nav_items,
+            spacing_before: Some(true),
+        });
+    }
+
+    Ok(())
+}
+
+fn work_item_to_navigation_item(item: &WorkItemListItem) -> NavigationItem {
+    let item_id = item.id.as_ref()
+        .map(|id| id.clone())
+        .unwrap_or_else(|| format!("work-item-{}", item.title));
+
+    NavigationItem {
+        id: item_id,
+        label: item.title.clone(),
+        icon: None,
+        children: None,
+        show_hover_menu: None,
+        unread: None,
+    }
+}
+
+/// Pluralizes a word using common English pluralization rules
+fn pluralize(word: &str) -> String {
+    if word.is_empty() {
+        return word.to_string();
+    }
+
+    let lower = word.to_lowercase();
+    let last_char = word.chars().last().unwrap();
+    let second_last_char = word.chars().rev().nth(1);
+
+    // Handle words ending in 'y' preceded by a consonant -> 'ies'
+    if last_char == 'y' && second_last_char.map(|c| !is_vowel(c)).unwrap_or(false) {
+        return format!("{}ies", &word[..word.len() - 1]);
+    }
+
+    // Handle words ending in 's', 'x', 'z', 'ch', 'sh' -> 'es'
+    if word.ends_with('s') || word.ends_with('x') || word.ends_with('z') ||
+       word.ends_with("ch") || word.ends_with("sh") {
+        return format!("{}es", word);
+    }
+
+    // Handle words ending in 'f' or 'fe' -> 'ves' (common cases)
+    if word.ends_with("fe") {
+        return format!("{}ves", &word[..word.len() - 2]);
+    }
+    if word.ends_with('f') && !word.ends_with("ff") {
+        return format!("{}ves", &word[..word.len() - 1]);
+    }
+
+    // Default: just add 's'
+    format!("{}s", word)
+}
+
+fn is_vowel(c: char) -> bool {
+    matches!(c.to_ascii_lowercase(), 'a' | 'e' | 'i' | 'o' | 'u')
 }
 
 fn build_document_section(sections: &mut Vec<NavigationSection>, documents: &Vec<NavigationDocument>) {
@@ -223,10 +366,13 @@ fn build_top_level_sections(sections: &mut Vec<NavigationSection>) {
         items: vec![],
         spacing_before: None,
     });
-}
-
-fn get_all_work_items(ctx: &AppContext) -> anyhow::Result<Vec<WorkItem>> {
-    Ok(vec![])
+    sections.push(NavigationSection {
+        id: "direct-messages".to_string(),
+        label: "Direct Messages".to_string(),
+        icon: Some("FaMessage".to_string()),
+        items: vec![],
+        spacing_before: None,
+    });
 }
 
 fn get_all_documents(ctx: &AppContext, project_id: &str) -> anyhow::Result<Vec<NavigationDocument>> {

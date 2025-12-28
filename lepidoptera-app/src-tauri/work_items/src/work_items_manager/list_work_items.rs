@@ -439,6 +439,7 @@ fn build_response_items(
             assigned_to: entity.assigned_to,
             project_id: entity.project_id,
             type_id: entity.type_id,
+            sequential_number: entity.sequential_number,
             status_detail,
             priority_detail,
             field_values,

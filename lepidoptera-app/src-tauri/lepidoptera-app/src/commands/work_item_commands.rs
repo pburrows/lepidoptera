@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::sync::Mutex;
 use crate::app_context::AppContext;
-use work_items::models::{WorkItemModel, WorkItemTypeModel};
+use work_items::models::{WorkItemModel, WorkItemTypeModel, WorkItemListRequest, WorkItemListResponse};
 use tauri::State;
 use log::{debug, error, info};
 use serde_json::Value;
@@ -105,6 +105,41 @@ pub fn get_work_item_types_by_project(
         Ok(result) => {
             let duration = start.elapsed();
             info!("[COMMAND] {} completed successfully in {:?} (found {} types)", command_name, duration, result.len());
+            Ok(result)
+        }
+        Err(e) => {
+            let duration = start.elapsed();
+            error!("[COMMAND] {} failed after {:?}: {}", command_name, duration, e);
+            Err(e.to_string())
+        }
+    }
+}
+
+#[tauri::command]
+pub fn list_work_items(
+    state: State<'_, Mutex<Arc<AppContext>>>,
+    request: WorkItemListRequest,
+) -> Result<WorkItemListResponse, String> {
+    let command_name = "list_work_items";
+    debug!("[COMMAND] {} called: project_id={}", command_name, request.query.project_id);
+    let start = std::time::Instant::now();
+    
+    let ctx = match state.lock() {
+        Ok(ctx) => ctx,
+        Err(e) => {
+            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
+            return Err("Failed to lock context".to_string());
+        }
+    };
+    
+    let work_items_manager = ctx.work_items.clone();
+    drop(ctx);
+    
+    match work_items_manager.list_work_items(request) {
+        Ok(result) => {
+            let duration = start.elapsed();
+            info!("[COMMAND] {} completed successfully in {:?} (found {} items, total: {})", 
+                command_name, duration, result.items.len(), result.total);
             Ok(result)
         }
         Err(e) => {

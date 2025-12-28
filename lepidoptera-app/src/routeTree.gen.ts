@@ -13,12 +13,16 @@ import { Route as WorkItemsRouteImport } from './routes/work-items'
 import { Route as ProjectsManageRouteImport } from './routes/projects-manage'
 import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as DocumentRouteImport } from './routes/document'
+import { Route as ConversationsRouteImport } from './routes/conversations'
 import { Route as BacklogRouteImport } from './routes/backlog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as WorkItemsBacklogRouteImport } from './routes/work-items/backlog'
+import { Route as ConversationsIndexRouteImport } from './routes/conversations/index'
+import { Route as WorkItemsListRouteImport } from './routes/work-items/list'
 import { Route as WorkItemsIdRouteImport } from './routes/work-items/$id'
 import { Route as DocumentIdRouteImport } from './routes/document/$id'
+import { Route as ConversationsDmsRouteImport } from './routes/conversations/dms'
+import { Route as ConversationsIdRouteImport } from './routes/conversations/$id'
 import { Route as WorkItemsNewEditRouteImport } from './routes/work-items/new.edit'
 import { Route as WorkItemsIdEditRouteImport } from './routes/work-items/$id.edit'
 import { Route as ProjectsNewEditRouteImport } from './routes/projects/new.edit'
@@ -46,6 +50,11 @@ const DocumentRoute = DocumentRouteImport.update({
   path: '/document',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConversationsRoute = ConversationsRouteImport.update({
+  id: '/conversations',
+  path: '/conversations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BacklogRoute = BacklogRouteImport.update({
   id: '/backlog',
   path: '/backlog',
@@ -61,9 +70,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkItemsBacklogRoute = WorkItemsBacklogRouteImport.update({
-  id: '/backlog',
-  path: '/backlog',
+const ConversationsIndexRoute = ConversationsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ConversationsRoute,
+} as any)
+const WorkItemsListRoute = WorkItemsListRouteImport.update({
+  id: '/list',
+  path: '/list',
   getParentRoute: () => WorkItemsRoute,
 } as any)
 const WorkItemsIdRoute = WorkItemsIdRouteImport.update({
@@ -75,6 +89,16 @@ const DocumentIdRoute = DocumentIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => DocumentRoute,
+} as any)
+const ConversationsDmsRoute = ConversationsDmsRouteImport.update({
+  id: '/dms',
+  path: '/dms',
+  getParentRoute: () => ConversationsRoute,
+} as any)
+const ConversationsIdRoute = ConversationsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ConversationsRoute,
 } as any)
 const WorkItemsNewEditRoute = WorkItemsNewEditRouteImport.update({
   id: '/new/edit',
@@ -111,13 +135,17 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/backlog': typeof BacklogRoute
+  '/conversations': typeof ConversationsRouteWithChildren
   '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
   '/work-items': typeof WorkItemsRouteWithChildren
+  '/conversations/$id': typeof ConversationsIdRoute
+  '/conversations/dms': typeof ConversationsDmsRoute
   '/document/$id': typeof DocumentIdRouteWithChildren
   '/work-items/$id': typeof WorkItemsIdRouteWithChildren
-  '/work-items/backlog': typeof WorkItemsBacklogRoute
+  '/work-items/list': typeof WorkItemsListRoute
+  '/conversations/': typeof ConversationsIndexRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
   '/projects/$id/edit': typeof ProjectsIdEditRoute
@@ -133,9 +161,12 @@ export interface FileRoutesByTo {
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
   '/work-items': typeof WorkItemsRouteWithChildren
+  '/conversations/$id': typeof ConversationsIdRoute
+  '/conversations/dms': typeof ConversationsDmsRoute
   '/document/$id': typeof DocumentIdRouteWithChildren
   '/work-items/$id': typeof WorkItemsIdRouteWithChildren
-  '/work-items/backlog': typeof WorkItemsBacklogRoute
+  '/work-items/list': typeof WorkItemsListRoute
+  '/conversations': typeof ConversationsIndexRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
   '/projects/$id/edit': typeof ProjectsIdEditRoute
@@ -148,13 +179,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/backlog': typeof BacklogRoute
+  '/conversations': typeof ConversationsRouteWithChildren
   '/document': typeof DocumentRouteWithChildren
   '/overview': typeof OverviewRoute
   '/projects-manage': typeof ProjectsManageRoute
   '/work-items': typeof WorkItemsRouteWithChildren
+  '/conversations/$id': typeof ConversationsIdRoute
+  '/conversations/dms': typeof ConversationsDmsRoute
   '/document/$id': typeof DocumentIdRouteWithChildren
   '/work-items/$id': typeof WorkItemsIdRouteWithChildren
-  '/work-items/backlog': typeof WorkItemsBacklogRoute
+  '/work-items/list': typeof WorkItemsListRoute
+  '/conversations/': typeof ConversationsIndexRoute
   '/document/$id/edit': typeof DocumentIdEditRoute
   '/document/new/edit': typeof DocumentNewEditRoute
   '/projects/$id/edit': typeof ProjectsIdEditRoute
@@ -168,13 +203,17 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/backlog'
+    | '/conversations'
     | '/document'
     | '/overview'
     | '/projects-manage'
     | '/work-items'
+    | '/conversations/$id'
+    | '/conversations/dms'
     | '/document/$id'
     | '/work-items/$id'
-    | '/work-items/backlog'
+    | '/work-items/list'
+    | '/conversations/'
     | '/document/$id/edit'
     | '/document/new/edit'
     | '/projects/$id/edit'
@@ -190,9 +229,12 @@ export interface FileRouteTypes {
     | '/overview'
     | '/projects-manage'
     | '/work-items'
+    | '/conversations/$id'
+    | '/conversations/dms'
     | '/document/$id'
     | '/work-items/$id'
-    | '/work-items/backlog'
+    | '/work-items/list'
+    | '/conversations'
     | '/document/$id/edit'
     | '/document/new/edit'
     | '/projects/$id/edit'
@@ -204,13 +246,17 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/backlog'
+    | '/conversations'
     | '/document'
     | '/overview'
     | '/projects-manage'
     | '/work-items'
+    | '/conversations/$id'
+    | '/conversations/dms'
     | '/document/$id'
     | '/work-items/$id'
-    | '/work-items/backlog'
+    | '/work-items/list'
+    | '/conversations/'
     | '/document/$id/edit'
     | '/document/new/edit'
     | '/projects/$id/edit'
@@ -223,6 +269,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   BacklogRoute: typeof BacklogRoute
+  ConversationsRoute: typeof ConversationsRouteWithChildren
   DocumentRoute: typeof DocumentRouteWithChildren
   OverviewRoute: typeof OverviewRoute
   ProjectsManageRoute: typeof ProjectsManageRoute
@@ -261,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocumentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conversations': {
+      id: '/conversations'
+      path: '/conversations'
+      fullPath: '/conversations'
+      preLoaderRoute: typeof ConversationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/backlog': {
       id: '/backlog'
       path: '/backlog'
@@ -282,11 +336,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/work-items/backlog': {
-      id: '/work-items/backlog'
-      path: '/backlog'
-      fullPath: '/work-items/backlog'
-      preLoaderRoute: typeof WorkItemsBacklogRouteImport
+    '/conversations/': {
+      id: '/conversations/'
+      path: '/'
+      fullPath: '/conversations/'
+      preLoaderRoute: typeof ConversationsIndexRouteImport
+      parentRoute: typeof ConversationsRoute
+    }
+    '/work-items/list': {
+      id: '/work-items/list'
+      path: '/list'
+      fullPath: '/work-items/list'
+      preLoaderRoute: typeof WorkItemsListRouteImport
       parentRoute: typeof WorkItemsRoute
     }
     '/work-items/$id': {
@@ -302,6 +363,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/document/$id'
       preLoaderRoute: typeof DocumentIdRouteImport
       parentRoute: typeof DocumentRoute
+    }
+    '/conversations/dms': {
+      id: '/conversations/dms'
+      path: '/dms'
+      fullPath: '/conversations/dms'
+      preLoaderRoute: typeof ConversationsDmsRouteImport
+      parentRoute: typeof ConversationsRoute
+    }
+    '/conversations/$id': {
+      id: '/conversations/$id'
+      path: '/$id'
+      fullPath: '/conversations/$id'
+      preLoaderRoute: typeof ConversationsIdRouteImport
+      parentRoute: typeof ConversationsRoute
     }
     '/work-items/new/edit': {
       id: '/work-items/new/edit'
@@ -348,6 +423,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ConversationsRouteChildren {
+  ConversationsIdRoute: typeof ConversationsIdRoute
+  ConversationsDmsRoute: typeof ConversationsDmsRoute
+  ConversationsIndexRoute: typeof ConversationsIndexRoute
+}
+
+const ConversationsRouteChildren: ConversationsRouteChildren = {
+  ConversationsIdRoute: ConversationsIdRoute,
+  ConversationsDmsRoute: ConversationsDmsRoute,
+  ConversationsIndexRoute: ConversationsIndexRoute,
+}
+
+const ConversationsRouteWithChildren = ConversationsRoute._addFileChildren(
+  ConversationsRouteChildren,
+)
+
 interface DocumentIdRouteChildren {
   DocumentIdEditRoute: typeof DocumentIdEditRoute
 }
@@ -388,13 +479,13 @@ const WorkItemsIdRouteWithChildren = WorkItemsIdRoute._addFileChildren(
 
 interface WorkItemsRouteChildren {
   WorkItemsIdRoute: typeof WorkItemsIdRouteWithChildren
-  WorkItemsBacklogRoute: typeof WorkItemsBacklogRoute
+  WorkItemsListRoute: typeof WorkItemsListRoute
   WorkItemsNewEditRoute: typeof WorkItemsNewEditRoute
 }
 
 const WorkItemsRouteChildren: WorkItemsRouteChildren = {
   WorkItemsIdRoute: WorkItemsIdRouteWithChildren,
-  WorkItemsBacklogRoute: WorkItemsBacklogRoute,
+  WorkItemsListRoute: WorkItemsListRoute,
   WorkItemsNewEditRoute: WorkItemsNewEditRoute,
 }
 
@@ -406,6 +497,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   BacklogRoute: BacklogRoute,
+  ConversationsRoute: ConversationsRouteWithChildren,
   DocumentRoute: DocumentRouteWithChildren,
   OverviewRoute: OverviewRoute,
   ProjectsManageRoute: ProjectsManageRoute,

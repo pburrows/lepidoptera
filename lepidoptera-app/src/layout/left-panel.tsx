@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Panel, ImperativePanelHandle } from 'react-resizable-panels';
 import { useNavigate } from '@tanstack/react-router';
-import { FaChevronLeft, FaChevronRight, FaChevronDown, FaChevronUp } from 'react-icons/fa6';
+import { FaChevronLeft, FaChevronRight, FaChevronDown, FaChevronUp, FaComment } from 'react-icons/fa6';
 import {FaChevronDown as FaChevronDownSolid, FaRunning} from 'react-icons/fa';
-import { FaFolder, FaFolderOpen, FaFile, FaStar, FaClock, FaUser, FaList, FaRocket, FaBook, FaEllipsisVertical } from 'react-icons/fa6';
+import { FaFolder, FaFolderOpen, FaFile, FaStar, FaClock, FaUser, FaList, FaRocket, FaBook, FaEllipsisVertical, FaMessage  } from 'react-icons/fa6';
 import { useNavigationStore } from '../stores/navigation-store';
 import './panel-layout.styles.scss';
 
@@ -37,6 +37,9 @@ interface NavSection {
 
 // Import types from store
 import type { NavigationItemResponse, NavigationSectionResponse, Project } from '../stores/navigation-store';
+import {BiSolidConversation, BiSolidMessageRoundedDetail} from "react-icons/bi";
+import {IoIosChatbubbles} from "react-icons/io";
+import {ImBubble, ImBubbles2} from "react-icons/im";
 
 export default function LeftPanel() {
     const navigate = useNavigate();
@@ -128,11 +131,17 @@ export default function LeftPanel() {
 
     // Helper function to check if an item belongs to the work items section
     const isWorkItemItem = useCallback((itemId: string): boolean => {
-        // Check if item is in work items section by searching navigation structure
+        // Check if itemId starts with work-item- prefix (individual work items)
+        if (itemId.startsWith('work-item-')) {
+            return true;
+        }
+        
+        // Check if item is in any work items section by searching navigation structure
         if (!navigation) return false;
         
         for (const section of navigation.sections) {
-            if (section.id === 'work_items') {
+            // Check if section ID starts with work-items-section- (new format)
+            if (section.id.startsWith('work-items-section-')) {
                 const findItem = (items: NavigationItemResponse[]): boolean => {
                     for (const item of items) {
                         if (item.id === itemId) return true;
@@ -142,7 +151,9 @@ export default function LeftPanel() {
                     }
                     return false;
                 };
-                return findItem(section.items);
+                if (findItem(section.items)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -153,16 +164,26 @@ export default function LeftPanel() {
         // Static route mappings
         const routeMap: Record<string, string> = {
             'overview': '/',
-            'backlog': '/work-items/backlog',
             'doc-tree': '/document/new/edit', // Navigate to new document creation
             'documents': '/document/new/edit', // Section header navigates to new document
-            'work_items': '/work-items/backlog', // Work items section can navigate to backlog
-            'sprints': '/work-items/backlog', // Sprints section can navigate to backlog
+            'work_items': '/work-items/list', // Work items section can navigate to backlog
+            'conversations': '/conversations', // Conversations section navigates to conversations list
+            'direct-messages': '/conversations/dms', // Direct messages navigates to DMs page
         };
         
         // Check static routes first
         if (routeMap[itemId]) {
             return routeMap[itemId];
+        }
+        
+        // If itemId starts with 'work-items-section-', navigate to work items list
+        if (itemId.startsWith('work-items-section-')) {
+            return '/work-items/list';
+        }
+        
+        // If itemId starts with 'conv-', navigate to specific conversation
+        if (itemId.startsWith('conv-')) {
+            return `/conversations/${itemId}`;
         }
         
         // If item belongs to documents section, navigate to document view
@@ -314,7 +335,7 @@ export default function LeftPanel() {
 
     const handleManageProjects = () => {
         setIsProjectDropdownOpen(false);
-        navigate({ to: '/projects-manage' });
+        navigate({ to: '/projects-manage'  });
     };
 
     // Icon mapping function - maps icon string names to React components
@@ -332,6 +353,8 @@ export default function LeftPanel() {
             'FaRocket': <FaRocket />,
             'FaBook': <FaBook />,
             'FaRunning': <FaRunning />,
+            'FaMessage': <ImBubble   />,
+            'FaComment': <ImBubbles2    />,
         };
         
         return iconMap[iconName] || undefined;
@@ -379,6 +402,15 @@ export default function LeftPanel() {
         { id: 'for-you', label: 'For You', icon: <FaUser />, items: [] },
         { id: 'recent', label: 'Recent', icon: <FaClock />, items: [] },
         { id: 'starred', label: 'Starred', icon: <FaStar />, items: [] },
+        {
+            id: 'conversations',
+            label: 'Conversations',
+            icon: <FaComment />,
+            spacingBefore: true, // Extra space before Documents
+            items: [
+                { id: 'conv-1', label: 'General' },
+            ],
+        },
         {
             id: 'work_items',
             label: 'Work Items',
@@ -454,7 +486,10 @@ export default function LeftPanel() {
     ];
 
     // Use fetched navigation sections, or fallback if loading/empty
-    const displayNavSections = navSections.length > 0 ? navSections : fallbackNavSections;
+    // TODO: Remove this filter once conversations are fully implemented
+    const displayNavSections = (navSections.length > 0 ? navSections : fallbackNavSections).filter(
+        section => section.id !== 'conversations' && section.id !== 'direct-messages'
+    );
 
     const renderNavItem = (item: NavItem, level: number = 0): React.ReactNode => {
         const hasChildren = item.children && item.children.length > 0;
