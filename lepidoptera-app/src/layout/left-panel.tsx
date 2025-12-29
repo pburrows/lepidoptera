@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Panel, ImperativePanelHandle } from 'react-resizable-panels';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useLocation } from '@tanstack/react-router';
 import { FaChevronLeft, FaChevronRight, FaChevronDown, FaChevronUp, FaComment } from 'react-icons/fa6';
 import {FaChevronDown as FaChevronDownSolid, FaRunning} from 'react-icons/fa';
 import { FaFolder, FaFolderOpen, FaFile, FaStar, FaClock, FaUser, FaList, FaRocket, FaBook, FaEllipsisVertical, FaMessage  } from 'react-icons/fa6';
@@ -23,6 +23,7 @@ interface NavItem {
     showHoverMenu?: boolean; // Flag to indicate if this item should show hover menu
     unread?: boolean; // Flag to indicate if this item has unread changes
     contextMenuItems?: ContextMenuItem[]; // Custom right-click menu items (optional)
+    sequentialNumber?: string | null; // Sequential number for work items (e.g., M-0003, M-1045, etc.)
 }
 
 interface NavSection {
@@ -43,6 +44,7 @@ import {ImBubble, ImBubbles2} from "react-icons/im";
 
 export default function LeftPanel() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isOpen, setIsOpen] = useState(true);
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['sprints', 'documents']));
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['epic-a', 'story-a']));
@@ -55,6 +57,8 @@ export default function LeftPanel() {
     const contextMenuRef = useRef<HTMLDivElement>(null);
     const projectDropdownRef = useRef<HTMLDivElement>(null);
     const projectButtonRef = useRef<HTMLButtonElement>(null);
+    const navItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+    const navigationContentRef = useRef<HTMLDivElement>(null);
 
     // Use navigation store
     const {
@@ -199,6 +203,197 @@ export default function LeftPanel() {
         return null;
     }, [isDocumentItem, isWorkItemItem]);
 
+    // Map current route to navigation item ID (reverse of getRouteForItem)
+    const getActiveNavItemId = useCallback((pathname: string): string | null => {
+        // Remove query parameters and hash
+        const path = pathname.split('?')[0].split('#')[0];
+        
+        // Static route mappings (reverse)
+        if (path === '/') {
+            return 'overview';
+        }
+        if (path === '/conversations') {
+            return 'conversations';
+        }
+        if (path === '/conversations/dms') {
+            return 'direct-messages';
+        }
+        if (path === '/work-items/list') {
+            return 'work_items';
+        }
+        if (path === '/document/new/edit') {
+            return 'doc-tree';
+        }
+        
+        // Match work item routes: /work-items/{id}
+        const workItemMatch = path.match(/^\/work-items\/([^/]+)$/);
+        if (workItemMatch) {
+            const workItemId = workItemMatch[1];
+            // Check if this work item exists in navigation
+            if (navigation) {
+                for (const section of navigation.sections) {
+                    if (section.id.startsWith('work-items-section-')) {
+                        const findItem = (items: NavigationItemResponse[]): string | null => {
+                            for (const item of items) {
+                                // Work item IDs in navigation match the work item ID from route
+                                if (item.id === workItemId || item.id === `work-item-${workItemId}`) {
+                                    return item.id;
+                                }
+                                if (item.children) {
+                                    const found = findItem(item.children);
+                                    if (found) return found;
+                                }
+                            }
+                            return null;
+                        };
+                        const found = findItem(section.items);
+                        if (found) return found;
+                    }
+                }
+            }
+            // If not found in navigation, still return the ID for highlighting
+            return workItemId.startsWith('work-item-') ? workItemId : `work-item-${workItemId}`;
+        }
+        
+        // Match document routes: /document/{id}
+        const documentMatch = path.match(/^\/document\/([^/]+)$/);
+        if (documentMatch) {
+            const documentId = documentMatch[1];
+            if (isDocumentItem(documentId)) {
+                return documentId;
+            }
+        }
+        
+        // Match conversation routes: /conversations/{id}
+        const conversationMatch = path.match(/^\/conversations\/([^/]+)$/);
+        if (conversationMatch) {
+            const conversationId = conversationMatch[1];
+            return `conv-${conversationId}`;
+        }
+        
+        // No match - route doesn't have a corresponding nav item
+        return null;
+    }, [navigation, isDocumentItem]);
+
+    // Get the active navigation item ID from current route
+    const activeNavItemId = useMemo(() => {
+        return getActiveNavItemId(location.pathname);
+    }, [location.pathname, getActiveNavItemId]);
+
+    // Find which section contains a given item ID
+    const findSectionForItem = useCallback((itemId: string): string | null => {
+        if (!navigation) return null;
+        
+        for (const section of navigation.sections) {
+            const findInItems = (items: NavigationItemResponse[]): boolean => {
+                for (const item of items) {
+                    if (item.id === itemId) return true;
+                    if (item.children) {
+                        if (findInItems(item.children)) return true;
+                    }
+                }
+                return false;
+            };
+            
+            if (findInItems(section.items)) {
+                return section.id;
+            }
+        }
+        
+        return null;
+    }, [navigation]);
+
+    // Find all parent item IDs for a given item ID (for nested items)
+    const findParentItems = useCallback((itemId: string): string[] => {
+        if (!navigation) return [];
+        
+        const parents: string[] = [];
+        
+        const findInItems = (items: NavigationItemResponse[], currentPath: string[]): boolean => {
+            for (const item of items) {
+                const newPath = [...currentPath, item.id];
+                if (item.id === itemId) {
+                    // Found it - return all parents except the item itself
+                    parents.push(...currentPath);
+                    return true;
+                }
+                if (item.children) {
+                    if (findInItems(item.children, newPath)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        
+        for (const section of navigation.sections) {
+            if (findInItems(section.items, [])) {
+                break;
+            }
+        }
+        
+        return parents;
+    }, [navigation]);
+
+    // Auto-expand sections and parent items when activeNavItemId changes
+    useEffect(() => {
+        if (!activeNavItemId) return;
+        
+        // Check if the active item is itself a section (like "overview")
+        // We check navigation.sections directly to avoid dependency on displayNavSections
+        const isActiveSection = navigation?.sections.some(section => section.id === activeNavItemId) ?? false;
+        
+        if (isActiveSection) {
+            // If it's a section, we don't need to expand anything (sections are always visible)
+            return;
+        }
+        
+        // Find the section containing this item
+        const sectionId = findSectionForItem(activeNavItemId);
+        if (sectionId) {
+            // Expand the section
+            setExpandedSections(prev => {
+                if (prev.has(sectionId)) return prev;
+                return new Set([...prev, sectionId]);
+            });
+        }
+        
+        // Find and expand parent items
+        const parentItems = findParentItems(activeNavItemId);
+        if (parentItems.length > 0) {
+            setExpandedItems(prev => {
+                const next = new Set(prev);
+                let changed = false;
+                for (const parentId of parentItems) {
+                    if (!next.has(parentId)) {
+                        next.add(parentId);
+                        changed = true;
+                    }
+                }
+                return changed ? next : prev;
+            });
+        }
+    }, [activeNavItemId, findSectionForItem, findParentItems, navigation]);
+
+    // Scroll active item into view
+    useEffect(() => {
+        if (!activeNavItemId || !isOpen) return;
+        
+        // Use setTimeout to ensure DOM is updated after expansion
+        const timeoutId = setTimeout(() => {
+            const activeItemElement = navItemRefs.current.get(activeNavItemId);
+            if (activeItemElement && navigationContentRef.current) {
+                activeItemElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'nearest',
+                });
+            }
+        }, 100); // Small delay to allow expansion animation
+        
+        return () => clearTimeout(timeoutId);
+    }, [activeNavItemId, isOpen, expandedSections, expandedItems]);
+
     const handleNavClick = (itemId: string) => {
         const route = getRouteForItem(itemId);
         if (route) {
@@ -335,7 +530,7 @@ export default function LeftPanel() {
 
     const handleManageProjects = () => {
         setIsProjectDropdownOpen(false);
-        navigate({ to: '/projects-manage'  });
+        navigate({ to: '/projects-manage', search: { dialog: false } });
     };
 
     // Icon mapping function - maps icon string names to React components
@@ -369,6 +564,7 @@ export default function LeftPanel() {
             children: item.children ? item.children.map(mapNavigationItem) : undefined,
             showHoverMenu: item.show_hover_menu ?? undefined,
             unread: item.unread ?? undefined,
+            sequentialNumber: item.sequential_number ?? undefined,
         };
     }, [mapIcon]);
 
@@ -497,13 +693,33 @@ export default function LeftPanel() {
         const indentLevel = level * 16;
         const isHovered = hoveredItemId === item.id;
         const isMenuOpen = openMenuId === item.id;
+        const isWorkItem = isWorkItemItem(item.id);
+        const isActive = activeNavItemId === item.id;
+        
+        // Work items should always show hover menu
+        const showHoverMenu = item.showHoverMenu || isWorkItem;
+        
+        // Format label for work items: <sequential_number> - <title>
+        const displayLabel = isWorkItem && item.sequentialNumber
+            ? `${item.sequentialNumber} - ${item.label}`
+            : item.label;
 
         return (
-            <div key={item.id} className="nav-item-wrapper">
+            <div 
+                key={item.id} 
+                className="nav-item-wrapper"
+                ref={(el) => {
+                    if (el) {
+                        navItemRefs.current.set(item.id, el);
+                    } else {
+                        navItemRefs.current.delete(item.id);
+                    }
+                }}
+            >
                 <div
-                    className={`nav-item ${hasChildren ? 'nav-item-parent' : ''} ${item.showHoverMenu ? 'nav-item-with-menu' : ''}`}
+                    className={`nav-item ${hasChildren ? 'nav-item-parent' : ''} ${showHoverMenu ? 'nav-item-with-menu' : ''} ${isWorkItem ? 'nav-item-work-item' : ''} ${isActive ? 'nav-item-active' : ''}`}
                     style={{ paddingLeft: `${indentLevel + 8}px` }}
-                    onMouseEnter={() => item.showHoverMenu && setHoveredItemId(item.id)}
+                    onMouseEnter={() => showHoverMenu && setHoveredItemId(item.id)}
                     onMouseLeave={() => setHoveredItemId(null)}
                     onContextMenu={(e) => handleContextMenu(e, item.id, item)}
                 >
@@ -532,9 +748,9 @@ export default function LeftPanel() {
                         {item.icon && (
                             <span className="nav-item-icon">{item.icon}</span>
                         )}
-                        <span className={`nav-item-label ${item.unread ? 'nav-item-label-unread' : ''}`}>{item.label}</span>
+                        <span className={`nav-item-label ${item.unread ? 'nav-item-label-unread' : ''}`}>{displayLabel}</span>
                     </div>
-                    {item.showHoverMenu && (
+                    {showHoverMenu && (
                         <button
                             className={`nav-item-menu-button ${isHovered ? 'nav-item-menu-button-visible' : ''}`}
                             data-menu-button={item.id}
@@ -647,7 +863,7 @@ export default function LeftPanel() {
                 )}
             </div>
             {isOpen && (
-                <div className="panel-content navigation-content">
+                <div ref={navigationContentRef} className="panel-content navigation-content">
                     {isLoadingNavigation && (
                         <div style={{ padding: '8px', color: '#666' }}>Loading navigation...</div>
                     )}
@@ -656,13 +872,21 @@ export default function LeftPanel() {
                         if (section.items.length === 0) {
                             const isSectionHovered = hoveredItemId === section.id;
                             const isSectionMenuOpen = openMenuId === section.id;
+                            const isSectionActive = activeNavItemId === section.id;
                             return (
                                 <div 
                                     key={section.id} 
                                     className={`nav-item-wrapper ${section.spacingBefore ? 'nav-item-wrapper-spacing-before' : ''}`}
+                                    ref={(el) => {
+                                        if (el) {
+                                            navItemRefs.current.set(section.id, el);
+                                        } else {
+                                            navItemRefs.current.delete(section.id);
+                                        }
+                                    }}
                                 >
                                     <div
-                                        className="nav-item nav-item-with-menu"
+                                        className={`nav-item nav-item-with-menu ${isSectionActive ? 'nav-item-active' : ''}`}
                                         onMouseEnter={() => setHoveredItemId(section.id)}
                                         onMouseLeave={() => setHoveredItemId(null)}
                                         onContextMenu={(e) => handleContextMenu(e, section.id, section)}
@@ -717,14 +941,22 @@ export default function LeftPanel() {
                         const isSectionExpanded = expandedSections.has(section.id);
                         const isSectionHovered = hoveredItemId === section.id;
                         const isSectionMenuOpen = openMenuId === section.id;
+                        const isSectionActive = activeNavItemId === section.id;
                         return (
                             <div 
                                 key={section.id} 
                                 className={`nav-section ${section.spacingBefore ? 'nav-section-spacing-before' : ''}`}
+                                ref={(el) => {
+                                    if (el) {
+                                        navItemRefs.current.set(section.id, el);
+                                    } else {
+                                        navItemRefs.current.delete(section.id);
+                                    }
+                                }}
                             >
                                 <div className="nav-section-header-wrapper">
                                     <div
-                                        className="nav-section-header nav-section-header-with-menu"
+                                        className={`nav-section-header nav-section-header-with-menu ${isSectionActive ? 'nav-section-header-active' : ''}`}
                                         onMouseEnter={() => setHoveredItemId(section.id)}
                                         onMouseLeave={() => setHoveredItemId(null)}
                                         onContextMenu={(e) => handleContextMenu(e, section.id, section)}

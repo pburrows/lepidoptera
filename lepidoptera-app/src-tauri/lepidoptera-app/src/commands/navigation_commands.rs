@@ -16,6 +16,7 @@ pub struct NavigationItem {
     pub children: Option<Vec<NavigationItem>>,
     pub show_hover_menu: Option<bool>,
     pub unread: Option<bool>,
+    pub sequential_number: Option<String>, // Sequential number for work items (e.g., M-0003, M-1045, etc.)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,6 +76,7 @@ fn build_conversation_section(sections: &mut Vec<NavigationSection>) {
         children: None,
         show_hover_menu: None,
         unread: Some(true),
+        sequential_number: None,
     };
     sections.push(NavigationSection {
         id: "conversations".to_string(),
@@ -169,6 +171,7 @@ fn build_work_item_section(
                 children: None,
                 show_hover_menu: Some(true),
                 unread: None,
+                sequential_number: None,
             }]
         } else {
             work_items_response.items
@@ -202,8 +205,9 @@ fn work_item_to_navigation_item(item: &WorkItemListItem) -> NavigationItem {
         label: item.title.clone(),
         icon: None,
         children: None,
-        show_hover_menu: None,
+        show_hover_menu: Some(true), // Enable hover menu for work items
         unread: None,
+        sequential_number: item.sequential_number.clone(),
     }
 }
 
@@ -254,6 +258,7 @@ fn build_document_section(sections: &mut Vec<NavigationSection>, documents: &Vec
             children: None,
             show_hover_menu: Some(true),
             unread: None,
+            sequential_number: None,
         }]
     } else {
         // Build tree structure from flat list
@@ -311,6 +316,7 @@ fn build_document_tree(documents: &[NavigationDocument]) -> Vec<NavigationItem> 
             children,
             show_hover_menu: None,
             unread: None,
+            sequential_number: None,
         }
     }
 

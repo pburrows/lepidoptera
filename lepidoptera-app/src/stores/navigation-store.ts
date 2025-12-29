@@ -9,6 +9,7 @@ export interface NavigationItemResponse {
     children?: NavigationItemResponse[] | null;
     show_hover_menu?: boolean | null;
     unread?: boolean | null;
+    sequential_number?: string | null; // Sequential number for work items (e.g., M-0003, M-1045, etc.)
 }
 
 export interface NavigationSectionResponse {

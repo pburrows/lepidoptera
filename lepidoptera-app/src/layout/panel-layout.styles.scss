@@ -405,9 +405,57 @@
   font-size: var(--font-size-2);
 }
 
+.nav-item-work-item {
+  .nav-item-content {
+    min-width: 0; // Ensure content can shrink for truncation
+  }
+  
+  .nav-item-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block; // Ensure label is block-level for truncation
+  }
+}
+
 .nav-item-label-unread {
   font-weight: var(--font-weight-bold);
   color: var(--gray-12); // Full contrast color (black/white depending on theme)
+}
+
+.nav-item-active {
+  background-color: var(--accent-3);
+  color: var(--accent-11);
+  
+  .nav-item-icon {
+    color: var(--accent-11);
+  }
+  
+  .nav-item-label {
+    color: var(--accent-11);
+    font-weight: var(--font-weight-medium);
+  }
+  
+  &:hover {
+    background-color: var(--accent-4);
+  }
+}
+
+.nav-section-header-active {
+  background-color: var(--accent-3);
+  color: var(--accent-11);
+  
+  .nav-section-icon {
+    color: var(--accent-11);
+  }
+  
+  .nav-section-label {
+    color: var(--accent-11);
+  }
+  
+  &:hover {
+    background-color: var(--accent-4);
+  }
 }
 
 .nav-item-children {
