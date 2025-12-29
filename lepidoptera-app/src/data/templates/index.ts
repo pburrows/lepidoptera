@@ -34,6 +34,26 @@ import { devopsPipelinesTemplate } from './devops-pipelines';
 import { marketingOpsTemplate } from './marketing-ops';
 import { salesOpsTemplate } from './sales-ops';
 import { erpSystemsTemplate } from './erp-systems';
+import { customerSupportTemplate } from './customer-support';
+import { customerSuccessTemplate } from './customer-success';
+import { technicalSupportTemplate } from './technical-support';
+import { itIncidentManagementTemplate } from './it-incident-management';
+import { problemManagementTemplate } from './problem-management';
+import { serviceRequestManagementTemplate } from './service-request-management';
+import { qaTestingTemplate } from './qa-testing';
+import { bugTrackingTemplate } from './bug-tracking';
+import { hrOperationsTemplate } from './hr-operations';
+import { employeeOnboardingTemplate } from './employee-onboarding';
+import { complianceManagementTemplate } from './compliance-management';
+import { auditTrailTemplate } from './audit-trail';
+import { contentManagementTemplate } from './content-management';
+import { knowledgeBaseManagementTemplate } from './knowledge-base-management';
+import { facilitiesManagementTemplate } from './facilities-management';
+import { assetManagementTemplate } from './asset-management';
+import { vendorManagementTemplate } from './vendor-management';
+import { procurementTemplate } from './procurement';
+import { trainingLearningTemplate } from './training-learning';
+import { productFeedbackTemplate } from './product-feedback';
 import { ProjectTemplate } from './types';
 
 export { scrumTemplate, kanbanTemplate, safeTemplate, xpTemplate, pmbokTemplate, prince2Template };
@@ -45,6 +65,15 @@ export { filmProductionTemplate, eventPlanningTemplate };
 export { governmentProjectsTemplate, nonprofitProgramsTemplate };
 export { itilTemplate, devopsPipelinesTemplate };
 export { marketingOpsTemplate, salesOpsTemplate, erpSystemsTemplate };
+export { customerSupportTemplate, customerSuccessTemplate, technicalSupportTemplate };
+export { itIncidentManagementTemplate, problemManagementTemplate, serviceRequestManagementTemplate };
+export { qaTestingTemplate, bugTrackingTemplate };
+export { hrOperationsTemplate, employeeOnboardingTemplate };
+export { complianceManagementTemplate, auditTrailTemplate };
+export { contentManagementTemplate, knowledgeBaseManagementTemplate };
+export { facilitiesManagementTemplate, assetManagementTemplate };
+export { vendorManagementTemplate, procurementTemplate };
+export { trainingLearningTemplate, productFeedbackTemplate };
 export type { ProjectTemplate, ProjectTemplateMetadata, WorkItemTypeTemplate } from './types';
 
 /**
@@ -87,6 +116,36 @@ export const templates: ProjectTemplate[] = [
   salesOpsTemplate,
   // Manufacturing Project/Operations Management (ISO / ERP-worked)
   erpSystemsTemplate,
+  // Customer Support & Service Management
+  customerSupportTemplate,
+  customerSuccessTemplate,
+  technicalSupportTemplate,
+  // IT Operations, DevOps, Infrastructure (Additional)
+  itIncidentManagementTemplate,
+  problemManagementTemplate,
+  serviceRequestManagementTemplate,
+  // Quality Assurance & Testing
+  qaTestingTemplate,
+  bugTrackingTemplate,
+  // HR & People Operations
+  hrOperationsTemplate,
+  employeeOnboardingTemplate,
+  // Compliance & Audit
+  complianceManagementTemplate,
+  auditTrailTemplate,
+  // Content & Knowledge Management
+  contentManagementTemplate,
+  knowledgeBaseManagementTemplate,
+  // Facilities & Operations
+  facilitiesManagementTemplate,
+  assetManagementTemplate,
+  // Vendor & Procurement
+  vendorManagementTemplate,
+  procurementTemplate,
+  // Training & Development
+  trainingLearningTemplate,
+  // Product Management
+  productFeedbackTemplate,
 ];
 
 /**

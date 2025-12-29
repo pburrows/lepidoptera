@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 use chrono::Utc;
 use ulid::Ulid;
 use crate::app_context::AppContext;
@@ -9,7 +8,7 @@ use log::{debug, error, info};
 
 #[tauri::command]
 pub fn create_attachment(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
     project_id: String,
     file_name: String,
     file_type: String,
@@ -39,16 +38,8 @@ pub fn create_attachment(
         }
     }
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let attachments_manager = ctx.attachments.clone();
-    drop(ctx);
 
     let attachment = Attachment {
         id: Some(Ulid::new().to_string()),
@@ -81,23 +72,15 @@ pub fn create_attachment(
 
 #[tauri::command]
 pub fn get_attachment(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
     attachment_id: String,
 ) -> Result<Attachment, String> {
     let command_name = "get_attachment";
     debug!("[COMMAND] {} called: attachment_id={}", command_name, attachment_id);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let attachments_manager = ctx.attachments.clone();
-    drop(ctx);
 
     match attachments_manager.get_attachment_by_id(&attachment_id) {
         Ok(Some(attachment)) => {

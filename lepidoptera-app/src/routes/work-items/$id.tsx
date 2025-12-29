@@ -1,156 +1,114 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Box, Text, Separator, Button, Flex, Grid } from '@radix-ui/themes'
-import RichTextEditor from '../../components/editor/rich-text-editor'
+import { Box, Button, Flex, Separator, Text } from '@radix-ui/themes'
+import { useState, useEffect } from 'react'
+import { invoke } from '@tauri-apps/api/core'
+import WorkItemView from '../../components/work-items/work-item-view'
+import type { WorkItemModel, WorkItemTypeModel } from '../../types/work-item.types'
 
 export const Route = createFileRoute('/work-items/$id')({
-  component: WorkItemView,
+  component: WorkItemViewPage,
 })
 
-function WorkItemView() {
+function WorkItemViewPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
-  
-  // TODO: Load work item data based on id
-  const workItem = {
-    title: 'Sample Work Item Title',
-    description: '<p>Work item description will be loaded here...</p>',
-    type: 'task',
-    priority: 'medium',
-    status: 'open',
-    assignee: 'John Doe',
-    project: 'Project Alpha',
-    labels: ['bug', 'urgent'],
-    dueDate: '2024-12-31',
-  }
+  const [workItem, setWorkItem] = useState<WorkItemModel | null>(null)
+  const [workItemType, setWorkItemType] = useState<WorkItemTypeModel | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadWorkItem = async () => {
+      setIsLoading(true)
+      
+      try {
+        const workItemData = await invoke<WorkItemModel | null>('get_work_item', { id })
+        
+        if (!workItemData) {
+          setIsLoading(false)
+          return
+        }
+        
+        setWorkItem(workItemData)
+        
+        // Load work item type
+        if (workItemData.type_id) {
+          try {
+            const types = await invoke<WorkItemTypeModel[]>('get_work_item_types_by_project', {
+              projectId: workItemData.project_id,
+            })
+            const type = types.find(t => (t.id || t.name) === workItemData.type_id)
+            if (type) {
+              setWorkItemType(type)
+            }
+          } catch (err) {
+            console.error('Failed to load work item type:', err)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load work item:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (id) {
+      loadWorkItem()
+    }
+  }, [id])
 
   const handleEdit = () => {
-    navigate({ to: '/work-items/$id/edit', params: { id } })
+    navigate({ to: '/work-items/$id/edit', params: { id }, search: { dialog: false } })
   }
+
+  const typeDisplayName = workItemType?.display_name || workItemType?.name || workItem?.type_id || ''
 
   return (
     <Box p="4">
       <Flex direction="column" gap="4">
-        {/* Header */}
-        <Flex justify="between" align="center">
-          <Text size="6" weight="bold">
-            {workItem.title || 'Untitled Work Item'}
-          </Text>
-          <Button onClick={handleEdit} size="3">
+        {/* Breadcrumbs and Title */}
+        {!isLoading && workItem && (
+          <>
+            <Flex align="center" gap="2">
+              <Text size="2" color="gray">
+                {workItem.sequential_number || '—'}
+              </Text>
+              <Text size="2" color="gray">
+                ({typeDisplayName})
+              </Text>
+            </Flex>
+            <Box>
+              <h1 style={{ 
+                margin: 0, 
+                fontSize: 'var(--font-size-7)', 
+                fontWeight: 'bold',
+                lineHeight: 'var(--line-height-7)'
+              }}>
+                {workItem.title || 'Untitled Work Item'}
+              </h1>
+            </Box>
+          </>
+        )}
+
+        {/* Toolbar */}
+        <Flex 
+          justify="between" 
+          align="center"
+          style={{
+            borderTop: '1px solid var(--accent-6)',
+            backgroundColor: 'var(--accent-2)',
+            padding: 'var(--space-2) var(--space-3)',
+            borderRadius: 'var(--radius-2)',
+            marginTop: 'var(--space-2)',
+          }}
+        >
+          <Box style={{ flex: 1 }} />
+          <Button onClick={handleEdit} size="2">
             Edit
           </Button>
         </Flex>
 
-        <Separator size="4" />
-
-        {/* Main Content Grid */}
-        <Grid columns={{ initial: "1", md: "2" }} gap="4">
-          {/* Left Column - Main Content */}
-          <Flex direction="column" gap="4">
-            {/* Description */}
-            <Box>
-              <Text size="2" weight="medium" mb="2" as="label">
-                Description
-              </Text>
-              <RichTextEditor
-                value={workItem.description}
-                placeholder="No description"
-                editable={false}
-                minHeight="200px"
-                showToolbar={false}
-                showCount={false}
-              />
-            </Box>
-
-            {/* Labels */}
-            {workItem.labels && workItem.labels.length > 0 && (
-              <Box>
-                <Text size="2" weight="medium" mb="2" as="label">
-                  Labels
-                </Text>
-                <Flex gap="2" wrap="wrap">
-                  {workItem.labels.map((label) => (
-                    <Box
-                      key={label}
-                      style={{
-                        padding: "4px 8px",
-                        backgroundColor: "var(--accent-3)",
-                        borderRadius: "var(--radius-2)",
-                        fontSize: "var(--font-size-1)",
-                      }}
-                    >
-                      <Text size="1">{label}</Text>
-                    </Box>
-                  ))}
-                </Flex>
-              </Box>
-            )}
-          </Flex>
-
-          {/* Right Column - Metadata */}
-          <Flex direction="column" gap="4">
-            {/* Type */}
-            <Box>
-              <Text size="2" weight="medium" mb="2" as="label">
-                Type
-              </Text>
-              <Text size="3" style={{ textTransform: 'capitalize' }}>
-                {workItem.type}
-              </Text>
-            </Box>
-
-            {/* Priority */}
-            <Box>
-              <Text size="2" weight="medium" mb="2" as="label">
-                Priority
-              </Text>
-              <Text size="3" style={{ textTransform: 'capitalize' }}>
-                {workItem.priority}
-              </Text>
-            </Box>
-
-            {/* Status */}
-            <Box>
-              <Text size="2" weight="medium" mb="2" as="label">
-                Status
-              </Text>
-              <Text size="3" style={{ textTransform: 'capitalize' }}>
-                {workItem.status}
-              </Text>
-            </Box>
-
-            {/* Assignee */}
-            {workItem.assignee && (
-              <Box>
-                <Text size="2" weight="medium" mb="2" as="label">
-                  Assignee
-                </Text>
-                <Text size="3">{workItem.assignee}</Text>
-              </Box>
-            )}
-
-            {/* Project */}
-            {workItem.project && (
-              <Box>
-                <Text size="2" weight="medium" mb="2" as="label">
-                  Project
-                </Text>
-                <Text size="3">{workItem.project}</Text>
-              </Box>
-            )}
-
-            {/* Due Date */}
-            {workItem.dueDate && (
-              <Box>
-                <Text size="2" weight="medium" mb="2" as="label">
-                  Due Date
-                </Text>
-                <Text size="3">
-                  {new Date(workItem.dueDate).toLocaleDateString()}
-                </Text>
-              </Box>
-            )}
-          </Flex>
-        </Grid>
+        {/* Work Item View */}
+        <WorkItemView workItemId={id} />
       </Flex>
     </Box>
   )

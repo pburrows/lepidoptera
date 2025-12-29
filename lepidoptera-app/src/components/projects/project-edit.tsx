@@ -22,6 +22,9 @@ interface ProjectFormData {
     sequencePrefix: string;
 }
 
+// Popular templates that appear in the "Popular" category
+const POPULAR_TEMPLATE_IDS = ['scrum', 'kanban', 'customer-support', 'bug-tracking'];
+
 export default function ProjectEdit() {
     const navigate = useNavigate();
     const { fetchProjects } = useNavigationStore();
@@ -36,6 +39,7 @@ export default function ProjectEdit() {
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string>('Popular');
 
     const handleFieldChange = (field: keyof ProjectFormData, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -106,7 +110,7 @@ export default function ProjectEdit() {
             await fetchProjects();
 
             // Navigate back to projects list
-            navigate({ to: '/projects-manage' });
+            navigate({ to: '/projects-manage', search: { dialog: false } });
         } catch (err) {
             console.error('Failed to create project:', err);
             setError(err instanceof Error ? err.message : 'Failed to create project');
@@ -116,18 +120,26 @@ export default function ProjectEdit() {
     };
 
     const handleCancel = () => {
-        navigate({ to: '/projects-manage' });
+        navigate({ to: '/projects-manage', search: { dialog: false } });
     };
 
-    // Group templates by category
-    const templatesByCategory = templates.reduce((acc, template) => {
-        const category = template.metadata.category || 'Other';
-        if (!acc[category]) {
-            acc[category] = [];
+    // Get all unique categories (excluding Popular which is special)
+    const categories = Array.from(
+        new Set(templates.map((t) => t.metadata.category || 'Other'))
+    ).sort();
+
+    // Add "Popular" as the first category
+    const allCategories = ['Popular', ...categories];
+
+    // Get templates for the selected category
+    const getTemplatesForCategory = (category: string): ProjectTemplate[] => {
+        if (category === 'Popular') {
+            return templates.filter((t) => POPULAR_TEMPLATE_IDS.includes(t.metadata.id));
         }
-        acc[category].push(template);
-        return acc;
-    }, {} as Record<string, ProjectTemplate[]>);
+        return templates.filter((t) => (t.metadata.category || 'Other') === category);
+    };
+
+    const filteredTemplates = getTemplatesForCategory(selectedCategory);
 
     return (
         <div className="project-edit">
@@ -194,14 +206,30 @@ export default function ProjectEdit() {
                             <Text size="2" weight="medium" mb="3" as="label">
                                 Project Template *
                             </Text>
-                            <div className="project-edit-templates">
-                                {Object.entries(templatesByCategory).map(([category, categoryTemplates]) => (
-                                    <div key={category} className="project-edit-template-category">
-                                        <Text size="3" weight="bold" mb="2" as="div">
-                                            {category}
-                                        </Text>
-                                        <Grid columns={{ initial: '1', md: '2', lg: '3' }} gap="3">
-                                            {categoryTemplates.map((template) => (
+                            <div className="project-edit-template-selection">
+                                {/* Categories List */}
+                                <div className="project-edit-categories">
+                                    {allCategories.map((category) => (
+                                        <button
+                                            key={category}
+                                            type="button"
+                                            className={`project-edit-category-item ${
+                                                selectedCategory === category ? 'selected' : ''
+                                            }`}
+                                            onClick={() => setSelectedCategory(category)}
+                                        >
+                                            <Text size="2" weight="regular">
+                                                {category}
+                                            </Text>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Templates Grid */}
+                                <div className="project-edit-templates-grid">
+                                    {filteredTemplates.length > 0 ? (
+                                        <Grid columns={{ initial: '1', md: '2', lg: '2' }} gap="3">
+                                            {filteredTemplates.map((template) => (
                                                 <button
                                                     key={template.metadata.id}
                                                     type="button"
@@ -228,8 +256,14 @@ export default function ProjectEdit() {
                                                 </button>
                                             ))}
                                         </Grid>
-                                    </div>
-                                ))}
+                                    ) : (
+                                        <Box py="6">
+                                            <Text size="2" color="gray" as="p">
+                                                No templates found in this category.
+                                            </Text>
+                                        </Box>
+                                    )}
+                                </div>
                             </div>
                         </Box>
 

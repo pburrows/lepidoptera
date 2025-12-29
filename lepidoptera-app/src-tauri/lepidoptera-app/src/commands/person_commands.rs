@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 use chrono::Utc;
 use ulid::Ulid;
 use crate::app_context::AppContext;
@@ -9,22 +8,14 @@ use log::{debug, error, info};
 
 #[tauri::command]
 pub fn ensure_initial_user(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
 ) -> Result<Option<Person>, String> {
     let command_name = "ensure_initial_user";
     debug!("[COMMAND] {} called", command_name);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let people_manager = ctx.people.clone();
-    drop(ctx);
     
     // Check if any persons exist
     let persons = match people_manager.get_persons() {
@@ -67,22 +58,14 @@ pub fn ensure_initial_user(
 
 #[tauri::command]
 pub fn get_persons(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
 ) -> Result<Vec<Person>, String> {
     let command_name = "get_persons";
     debug!("[COMMAND] {} called", command_name);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let people_manager = ctx.people.clone();
-    drop(ctx);
     
     match people_manager.get_persons() {
         Ok(result) => {

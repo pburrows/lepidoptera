@@ -3,7 +3,7 @@ use crate::settings::local_settings_store::LocalSettingsStore;
 use anyhow::Result;
 use db::connection_pool::ConnectionPool;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Manager};
 use tauri::path::BaseDirectory;
 use work_items::work_items_port::WorkItemsManager;
@@ -28,7 +28,7 @@ pub struct AppContext {
     pub sync: Arc<dyn SyncManager>,
     pub attachments: Arc<dyn AttachmentsManager>,
     pub people: Arc<dyn PersonManager>,
-    pub local_settings: LocalSettingsStore,
+    pub local_settings: Arc<Mutex<LocalSettingsStore>>,
     pub local_machine: LocalMachine,
 }
 
@@ -81,7 +81,7 @@ impl AppContextBuilder {
             sync: sync_manager,
             attachments: attachments_manager,
             people: people_manager,
-            local_settings: self.settings,
+            local_settings: Arc::new(Mutex::new(self.settings)),
             local_machine,
         })
     }

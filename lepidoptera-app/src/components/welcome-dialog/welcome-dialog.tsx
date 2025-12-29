@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { Box, Flex, Button, Text, Theme } from '@radix-ui/themes';
+import { Box, Flex, Button, Theme } from '@radix-ui/themes';
 import { FaXmark } from 'react-icons/fa6';
 import './welcome-dialog.styles.scss';
 
@@ -66,9 +66,9 @@ export default function WelcomeDialog({
 
               {/* Right side - Welcome message and buttons */}
               <Box className="welcome-dialog-content-container">
-                <Text size="8" weight="bold" className="welcome-dialog-title">
+                <Dialog.Title className="welcome-dialog-title">
                   Welcome to Lepidoptera
-                </Text>
+                </Dialog.Title>
 
                 <Flex direction="column" gap="4" mt="6">
                   <Button

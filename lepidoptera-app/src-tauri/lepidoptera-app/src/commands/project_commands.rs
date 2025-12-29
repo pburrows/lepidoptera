@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::sync::Mutex;
 use chrono::Utc;
 use ulid::Ulid;
 use crate::app_context::AppContext;
@@ -10,23 +9,15 @@ use log::{debug, error, info};
 
 #[tauri::command]
 pub fn create_project(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
     project: CreateProjectRequest,
 ) -> Result<Project, String> {
     let command_name = "create_project";
     debug!("[COMMAND] {} called: name={}", command_name, project.name);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let projects_manager = ctx.projects.clone();
-    drop(ctx);
 
     let new_project = Project {
         id: Some(Ulid::new().to_string()),
@@ -55,7 +46,7 @@ pub fn create_project(
 
 #[tauri::command]
 pub fn get_project_setting(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
     project_id: String,
     setting_key: String,
 ) -> Result<Option<Value>, String> {
@@ -64,16 +55,8 @@ pub fn get_project_setting(
            command_name, project_id, setting_key);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let projects_manager = ctx.projects.clone();
-    drop(ctx);
 
     match projects_manager.get_project_setting(project_id, setting_key) {
         Ok(result) => {
@@ -91,7 +74,7 @@ pub fn get_project_setting(
 
 #[tauri::command]
 pub fn set_project_setting(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
     project_id: String,
     setting_key: String,
     setting_value: Value,
@@ -102,16 +85,8 @@ pub fn set_project_setting(
            command_name, project_id, setting_key, updated_by);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let projects_manager = ctx.projects.clone();
-    drop(ctx);
 
     match projects_manager.set_project_setting(project_id.clone(), setting_key.clone(), setting_value.clone(), updated_by.clone()) {
         Ok(_) => {
@@ -129,23 +104,15 @@ pub fn set_project_setting(
 
 #[tauri::command]
 pub fn ensure_initial_project(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
 ) -> Result<Option<Project>, String> {
     let command_name = "ensure_initial_project";
     debug!("[COMMAND] {} called", command_name);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let projects_manager = ctx.projects.clone();
     let work_items_manager = ctx.work_items.clone();
-    drop(ctx);
     
     // Check if any projects exist
     let projects = match projects_manager.get_projects() {
@@ -223,23 +190,15 @@ pub fn ensure_initial_project(
 
 #[tauri::command]
 pub fn get_project_by_id(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
     project_id: String,
 ) -> Result<Option<Project>, String> {
     let command_name = "get_project_by_id";
     debug!("[COMMAND] {} called: project_id={}", command_name, project_id);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let projects_manager = ctx.projects.clone();
-    drop(ctx);
 
     match projects_manager.get_project_by_id(project_id) {
         Ok(result) => {
@@ -257,23 +216,15 @@ pub fn get_project_by_id(
 
 #[tauri::command]
 pub fn update_project(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
     project: Project,
 ) -> Result<Project, String> {
     let command_name = "update_project";
     debug!("[COMMAND] {} called: project_id={:?}", command_name, project.id);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-    
+    let ctx = state.inner();
     let projects_manager = ctx.projects.clone();
-    drop(ctx);
 
     match projects_manager.update_project(project) {
         Ok(result) => {

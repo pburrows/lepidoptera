@@ -1,5 +1,5 @@
 use crate::app_context::AppContextBuilder;
-use crate::commands::work_item_commands::{create_work_item, get_work_item_types_by_project, list_work_items};
+use crate::commands::work_item_commands::{create_work_item, get_work_item, get_work_item_types_by_project, list_work_items};
 use crate::commands::project_template_commands::apply_project_template;
 use crate::commands::project_commands::{create_project, get_project_setting, set_project_setting, ensure_initial_project, get_project_by_id, update_project};
 use crate::commands::person_commands::{ensure_initial_user, get_persons};
@@ -7,7 +7,7 @@ use crate::commands::attachment_commands::{create_attachment, get_attachment};
 use crate::commands::file_commands::read_file_binary;
 use crate::commands::window_commands::open_new_window;
 use crate::settings::local_settings_store::LocalSettingsStore;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tauri::Manager;
 use crate::commands::navigation_commands::{get_navigation, get_projects};
 use tauri_plugin_log::{Target, TargetKind};
@@ -48,13 +48,14 @@ pub fn run() {
             let settings_store = LocalSettingsStore::new(app_handle)?;
 
             let ctx = Arc::new(AppContextBuilder::new(settings_store).build(app_handle)?);
-            app.manage(Mutex::new(ctx));
+            app.manage(ctx);
             log::info!("Application context initialized successfully");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             greet, 
             create_work_item,
+            get_work_item,
             get_work_item_types_by_project,
             list_work_items,
             get_navigation,

@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import WorkItemEdit, { WorkItemData } from '../../components/work-items/work-item-edit'
+import WorkItemEdit from '../../components/work-items/work-item-edit'
+import type { WorkItemData } from '../../types/work-item.types'
 
 export const Route = createFileRoute('/work-items/$id/edit')({
   component: WorkItemEditView,

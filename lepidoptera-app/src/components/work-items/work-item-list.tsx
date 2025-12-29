@@ -17,83 +17,15 @@ import {
     Box,
     Flex,
 } from '@radix-ui/themes';
-import type { AllowedStatus, AssignmentFieldDefinition, WorkItemField } from '../../data/templates/types';
-
-// TypeScript interface matching Rust WorkItemTypeModel
-interface WorkItemTypeModel {
-    id?: string | null;
-    project_id: string;
-    created_at: string;
-    updated_at?: string | null;
-    is_active: boolean;
-    name: string;
-    display_name: string;
-    allowed_children_type_ids: string[];
-    allowed_statuses: AllowedStatus[];
-    allowed_priorities: Array<{
-        id: string;
-        label: string;
-        value: number;
-        color?: string;
-    }>;
-    assignment_field_definitions: AssignmentFieldDefinition[];
-    work_item_details: {
-        icon?: string;
-        color?: string;
-        description?: string;
-        default_fields?: string[];
-        [key: string]: any;
-    };
-    work_item_fields: WorkItemField[];
-}
+import type { AllowedStatus, AssignmentFieldDefinition } from '../../data/templates/types';
+import type {
+    WorkItemTypeModel,
+    WorkItemQuery,
+    WorkItemListRequest,
+    WorkItemListItem,
+    WorkItemListResponse,
+} from '../../types/work-item.types';
 import './work-item-list.styles.scss';
-
-// TypeScript types matching Rust models
-interface WorkItemQuery {
-    project_id: string;
-    statuses?: string[];
-    type_ids?: string[];
-    assigned_to?: string;
-    title_contains?: string;
-    page?: number;
-    page_size?: number;
-}
-
-interface WorkItemListRequest {
-    query: WorkItemQuery;
-    include_fields?: string[];
-}
-
-interface WorkItemListItem {
-    id?: string;
-    title: string;
-    description?: string;
-    status: string;
-    created_at: string;
-    updated_at?: string;
-    priority: number;
-    created_by: string;
-    assigned_to?: string;
-    project_id: string;
-    type_id: string;
-    sequential_number?: string;
-    status_detail?: AllowedStatus;
-    priority_detail?: {
-        id: string;
-        label: string;
-        value: number;
-        color?: string;
-    };
-    field_values: any[];
-}
-
-interface WorkItemListResponse {
-    items: WorkItemListItem[];
-    total: number;
-    page?: number;
-    page_size?: number;
-    total_pages?: number;
-}
 
 interface Person {
     id?: string;

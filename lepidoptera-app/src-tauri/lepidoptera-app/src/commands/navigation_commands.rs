@@ -1,6 +1,6 @@
 use crate::app_context::AppContext;
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tauri::State;
 use documents::docuent_ports::NavigationDocument;
 use work_items::models::{WorkItemTypeModel, WorkItemListRequest, WorkItemQuery, WorkItemListItem};
@@ -35,21 +35,15 @@ pub struct NavigationResponse {
 #[tauri::command]
 pub fn get_navigation(
     project_id: String,
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
 ) -> Result<NavigationResponse, String> {
     let command_name = "get_navigation";
     debug!("[COMMAND] {} called: project_id={}", command_name, project_id);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
+    let ctx = state.inner();
 
-    let documents = match get_all_documents(&ctx, &project_id) {
+    let documents = match get_all_documents(ctx, &project_id) {
         Ok(docs) => docs,
         Err(e) => {
             error!("[COMMAND] {} failed to get documents: {}", command_name, e);
@@ -93,7 +87,7 @@ fn build_conversation_section(sections: &mut Vec<NavigationSection>) {
 
 fn build_work_item_section(
     sections: &mut Vec<NavigationSection>,
-    ctx: &AppContext,
+    ctx: &Arc<AppContext>,
     project_id: &str,
 ) -> Result<(), String> {
     // Get all work item types for the project
@@ -375,7 +369,7 @@ fn build_top_level_sections(sections: &mut Vec<NavigationSection>) {
     });
 }
 
-fn get_all_documents(ctx: &AppContext, project_id: &str) -> anyhow::Result<Vec<NavigationDocument>> {
+fn get_all_documents(ctx: &Arc<AppContext>, project_id: &str) -> anyhow::Result<Vec<NavigationDocument>> {
     // Get documents for the specified project
     let documents = ctx.documents.get_document_tree(project_id)?;
 
@@ -384,23 +378,15 @@ fn get_all_documents(ctx: &AppContext, project_id: &str) -> anyhow::Result<Vec<N
 
 #[tauri::command]
 pub fn get_projects(
-    state: State<'_, Mutex<Arc<AppContext>>>,
+    state: State<'_, Arc<AppContext>>,
 ) -> Result<Vec<Project>, String> {
     let command_name = "get_projects";
     debug!("[COMMAND] {} called", command_name);
     let start = std::time::Instant::now();
     
-    let ctx = match state.lock() {
-        Ok(ctx) => ctx,
-        Err(e) => {
-            error!("[COMMAND] {} failed to lock context: {}", command_name, e);
-            return Err("Failed to lock context".to_string());
-        }
-    };
-
+    let ctx = state.inner();
     let projects_manager = ctx.projects.clone();
     let work_items_manager = ctx.work_items.clone();
-    drop(ctx);
 
     use crate::commands::person_commands::ensure_initial_user;
     if let Err(e) = ensure_initial_user(state.clone()) {

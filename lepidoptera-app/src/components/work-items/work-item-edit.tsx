@@ -15,39 +15,15 @@ import { FaXmark } from "react-icons/fa6";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {RichTextEditor} from "../editor";
-import type { AllowedStatus, AllowedPriority, AssignmentFieldDefinition, WorkItemField } from "../../data/templates/types";
+import type { WorkItemField } from "../../data/templates/types";
+import type {
+    WorkItemTypeModel,
+    WorkItemData,
+    WorkItemEditProps,
+} from "../../types/work-item.types";
 
-interface WorkItemType {
-    id: string | null;
-    name: string;
-    display_name: string;
-    project_id: string;
-    is_active: boolean;
-    allowed_statuses: AllowedStatus[];
-    allowed_priorities: AllowedPriority[];
-    assignment_field_definitions: AssignmentFieldDefinition[];
-    work_item_fields: WorkItemField[];
-}
-
-export interface WorkItemData {
-    title: string;
-    description: string;
-    type: string;
-    priority: string;
-    status: string;
-    assignmentFields: Record<string, string>; // Map of assignment field ID to value
-    customFields: Record<string, any>; // Map of custom field ID to value
-    // project: string;
-    labels: string[];
-    dueDate: string;
-}
-
-interface WorkItemEditProps {
-    workItem?: WorkItemData;
-    activeProjectId?: string;
-    onSave?: (workItem: WorkItemData) => void;
-    onCancel?: () => void;
-}
+// Re-export WorkItemData for backward compatibility
+export type { WorkItemData } from "../../types/work-item.types";
 
 export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCancel }: WorkItemEditProps) {
     const {
@@ -76,7 +52,7 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
     });
 
     const [newLabel, setNewLabel] = useState("");
-    const [workItemTypes, setWorkItemTypes] = useState<WorkItemType[]>([]);
+    const [workItemTypes, setWorkItemTypes] = useState<WorkItemTypeModel[]>([]);
     const [isLoadingTypes, setIsLoadingTypes] = useState(false);
     
     const watchedLabels = watch("labels");
@@ -130,7 +106,7 @@ export default function WorkItemEdit({ workItem, activeProjectId, onSave, onCanc
 
             setIsLoadingTypes(true);
             try {
-                const types = await invoke<WorkItemType[]>('get_work_item_types_by_project', {
+                const types = await invoke<WorkItemTypeModel[]>('get_work_item_types_by_project', {
                     projectId: activeProjectId,
                 });
                 console.log('Work item types:', types);

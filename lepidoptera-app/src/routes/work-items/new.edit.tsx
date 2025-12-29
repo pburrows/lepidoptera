@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { invoke } from '@tauri-apps/api/core'
-import WorkItemEdit, { WorkItemData } from '../../components/work-items/work-item-edit'
+import WorkItemEdit from '../../components/work-items/work-item-edit'
+import type { WorkItemData } from '../../types/work-item.types'
 
 export const Route = createFileRoute('/work-items/new/edit')({
   component: NewWorkItemEdit,
